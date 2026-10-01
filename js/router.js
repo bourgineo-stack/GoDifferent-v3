@@ -27,6 +27,7 @@ export function activeSteps() {
 const screenEl = id => document.querySelector(`[data-screen="${id}"]`);
 
 export function show(id) {
+  document.dispatchEvent(new Event('ecran')); // coupe la caméra éventuelle
   const el = screenEl(id) || screenEl('bientot');
   document.querySelectorAll('[data-screen]').forEach(s => { s.hidden = s !== el; });
   const step = el.dataset.step || store.get().step;
@@ -37,9 +38,10 @@ export function show(id) {
 }
 
 // Va au premier écran d'une étape (ou au provisoire si l'étape n'est pas encore construite)
-export function goToStep(step) {
-  const first = document.querySelector(`[data-step="${step}"]`);
-  if (first) return show(first.dataset.screen);
+export function goToStep(step, back = false) {
+  const els = document.querySelectorAll(`[data-step="${step}"]`);
+  const target = back ? els[els.length - 1] : els[0]; // en reculant, on revient au dernier écran de l'étape
+  if (target) return show(target.dataset.screen);
   store.set({ step });
   show('bientot');
 }
@@ -53,7 +55,7 @@ export function next() {
 export function prev() {
   const seq = activeSteps();
   const i = seq.indexOf(store.get().step);
-  if (i > 0) goToStep(seq[i - 1]);
+  if (i > 0) goToStep(seq[i - 1], true);
 }
 
 // Le fil de progression : un arrêt par étape active

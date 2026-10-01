@@ -18,3 +18,12 @@ export const PSEUDO_WORDS = [
   'Covoiturage', 'Velo', 'Trottinette', 'Train', 'Bus', 'Cheval',
   'Marche', 'Tram', 'Pieton', 'Metro', 'VeloElectrique', 'Monoroue'
 ];
+
+// Mini-défis proposés quand on scanne quelqu'un qui habite près de chez soi
+export const DEFIS = [
+  { titre: 'Connecteurs', tache: 'Présentez-vous mutuellement à une troisième personne, puis scannez-la ensemble.' },
+  { titre: "Chasseurs d'initiales", tache: 'Scannez deux personnes dont les prénoms commencent par la même lettre.' },
+  { titre: 'Devine mon adresse', tache: "Essayez de deviner le quartier ou la rue de la personne que vous venez de scanner." },
+  { titre: 'Entraide', tache: "Repérez quelqu'un qui a peu scanné ou qui semble perdu, et aidez-le." },
+  { titre: 'Selfie mobilité', tache: 'Prenez ensemble un selfie sur le thème du transport : devant un vélo, un panneau, un abri de bus...' }
+];

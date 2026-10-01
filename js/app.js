@@ -2,8 +2,12 @@
 import { store } from './store.js';
 import { show, next, prev } from './router.js';
 import * as step1 from './steps/step1.js';
+import * as step2 from './steps/step2.js';
+import * as step3 from './steps/step3.js';
 
 step1.init();
+step2.init();
+step3.init();
 
 // Boutons de navigation génériques : data-action="next" | "prev" | "reset"
 document.addEventListener('click', e => {

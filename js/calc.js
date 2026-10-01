@@ -10,3 +10,8 @@ export function roadKm(a, b) {
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h)) * DISTANCE_CORRECTION_FACTOR;
 }
+
+// 3,2 km / 850 m
+export function fmtKm(km) {
+  return km < 1 ? `${Math.round(km * 100) * 10} m` : `${km.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} km`;
+}

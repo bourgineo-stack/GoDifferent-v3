@@ -126,8 +126,34 @@ input[type="time"] { color-scheme: dark; }
 .qr img, .qr canvas { display: block; }
 
 /* ===== Messages ===== */
-.toasts { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 16px); transform: translateX(-50%); width: min(92vw, 520px); display: grid; gap: 8px; z-index: 100; }
+.toasts { pointer-events: none; position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 12px); transform: translateX(-50%); width: min(92vw, 520px); display: grid; gap: 8px; z-index: 100; }
 .toast { padding: 14px 16px; border-radius: 12px; font-weight: 600; background: var(--texte); color: var(--encre); box-shadow: 0 10px 30px rgba(0,0,0,.4); border-left: 6px solid var(--vert); }
 .toast-error { border-left-color: var(--erreur); }
+
+/* ===== Lot 2 : QR, caméra, rencontres, voisins ===== */
+.centre { text-align: center; }
+.centre .qr { margin-top: 0; }
+.qr-petit { margin: 0; padding: 8px; flex: none; }
+.camera { position: relative; margin-top: 18px; border-radius: var(--r-carte); overflow: hidden; background: #000; aspect-ratio: 1; }
+.camera video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.camera::after { /* viseur */
+  content: ''; position: absolute; inset: 18%; border: 3px solid var(--vert); border-radius: 14px;
+  box-shadow: 0 0 0 999px rgba(21, 19, 42, .35);
+}
+.intertitre { margin-top: 30px; font-size: 1.1rem; }
+.contacts { list-style: none; display: grid; gap: 8px; }
+.contacts li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border-radius: var(--r-champ); font-weight: 600; }
+.contacts li.vide { font-weight: 400; color: var(--texte-doux); }
+.contacts li.trouve { background: color-mix(in srgb, var(--vert) 22%, var(--surface)); }
+.km { font-weight: 800; color: var(--texte-doux); white-space: nowrap; }
+.km.proche { color: var(--vert); }
+.defi { margin-top: 18px; padding: 18px; border-radius: var(--r-carte); background: var(--surface); border: 2px dashed var(--orange); }
+.defi-titre { font-weight: 800; color: var(--orange); margin-bottom: 6px; }
+.regles { padding-left: 40px; display: grid; gap: 10px; }
+.tableau { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+.score { display: grid; gap: 4px; color: var(--texte-doux); }
+.score strong { color: var(--texte); font-size: 1.6rem; }
+.resultat { margin-top: 14px; padding: 14px 16px; border-radius: var(--r-champ); background: var(--surface); font-weight: 600; }
+.resultat.gagne { border-left: 6px solid var(--vert); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

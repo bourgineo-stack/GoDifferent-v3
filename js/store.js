@@ -6,7 +6,9 @@ const defaults = () => ({
   workshop: null,    // { companyLat, companyLon, steps, capacity, expirationDate }
   profile: null,     // profil validé et enregistré dans Firestore
   step: 'step1',     // étape courante (sert au fil de progression)
-  screen: ''         // écran courant
+  screen: '',        // écran courant
+  contacts: [],      // personnes rencontrées { id, lat, lon, pseudo, distance, source }
+  game: null         // jeu des voisins { targets, found, attempts }
 });
 
 function load() {

@@ -1,6 +1,6 @@
 // SEUL fichier qui parle à Firestore. Le schéma des données est entièrement ici.
 import { db, ensureAuth } from './firebase.js';
-import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -50,4 +50,30 @@ export async function saveParticipant(code, p) {
     timestamp: new Date().toISOString(),
     uid: user.uid
   }));
+}
+
+// workshops/{CODE}/participantScans/{id} : MES scans uniquement (champs identiques à la v2)
+export async function saveScans(code, profile, contacts) {
+  await ensureAuth();
+  const mine = contacts.filter(c => c.source === 'scan');
+  await withRetry(() => setDoc(doc(db, 'workshops', code, 'participantScans', profile.id), {
+    scannerId12: profile.id.slice(0, 12),
+    scannerLat: profile.lat,
+    scannerLon: profile.lon,
+    scannerPseudo: profile.pseudo,
+    scannedIds: mine.map(c => c.id),
+    scannedParticipants: mine.map(c => ({ id: c.id, lat: c.lat, lon: c.lon, pseudo: c.pseudo })),
+    timestamp: new Date().toISOString()
+  }));
+}
+
+// Qui m'a scanné ? Une seule requête ciblée : remplace l'agrégat meta/scansAggregated de la v2
+// (qui figeait la liste au premier arrivant et perdait les scans des retardataires).
+export async function fetchReciprocal(code, id12) {
+  await ensureAuth();
+  const q = query(collection(db, 'workshops', code, 'participantScans'), where('scannedIds', 'array-contains', id12));
+  const snap = await withRetry(() => getDocs(q));
+  return snap.docs.map(d => d.data())
+    .filter(d => d.scannerId12 && d.scannerId12 !== id12)
+    .map(d => ({ id: d.scannerId12, lat: d.scannerLat, lon: d.scannerLon, pseudo: d.scannerPseudo || 'Anonyme' }));
 }
