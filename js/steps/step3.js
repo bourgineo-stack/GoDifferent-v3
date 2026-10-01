@@ -5,6 +5,7 @@ import { fetchReciprocal } from '../db.js';
 import { startScan, stopScan, isScanning, cameraError } from '../scanner.js';
 import { myPayload, renderQR, parsePayload } from '../qr.js';
 import { roadKm, fmtKm } from '../calc.js';
+import { addContact } from '../rencontres.js';
 import { $, esc, toast, busy } from '../ui.js';
 
 const NB_CIBLES = 5, NB_ESSAIS = 5;
@@ -36,12 +37,8 @@ async function loadReciprocal() {
   const { code, profile } = store.get();
   try {
     const found = await fetchReciprocal(code, profile.id.slice(0, 12));
-    const { contacts } = store.get();
-    const added = found
-      .filter(f => !contacts.some(c => c.id === f.id))
-      .map(f => ({ ...f, distance: roadKm(profile, f), source: 'reciproque' }));
+    const added = found.map(f => addContact(f, 'reciproque')).filter(Boolean);
     if (added.length) {
-      store.set({ contacts: [...contacts, ...added] });
       toast(`${added.length} personne${added.length > 1 ? 's' : ''} vous avai${added.length > 1 ? 'ent' : 't'} scanné : ajoutée${added.length > 1 ? 's' : ''} à vos contacts.`);
     }
   } catch (err) {

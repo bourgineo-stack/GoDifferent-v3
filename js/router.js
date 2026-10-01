@@ -35,6 +35,7 @@ export function show(id) {
   hooks[el.dataset.screen]?.();
   renderThread();
   window.scrollTo(0, 0);
+  document.dispatchEvent(new CustomEvent('ecran-affiche', { detail: { step } }));
 }
 
 // Va au premier écran d'une étape (ou au provisoire si l'étape n'est pas encore construite)

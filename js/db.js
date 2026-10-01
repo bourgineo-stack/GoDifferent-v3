@@ -1,6 +1,6 @@
 // SEUL fichier qui parle à Firestore. Le schéma des données est entièrement ici.
 import { db, ensureAuth } from './firebase.js';
-import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -52,10 +52,11 @@ export async function saveParticipant(code, p) {
   }));
 }
 
-// workshops/{CODE}/participantScans/{id} : MES scans uniquement (champs identiques à la v2)
+// workshops/{CODE}/participantScans/{id} : toutes MES rencontres (champs identiques à la v2).
+// Une rencontre est mutuelle : celles reçues par scan de l'autre sont incluses.
 export async function saveScans(code, profile, contacts) {
   await ensureAuth();
-  const mine = contacts.filter(c => c.source === 'scan');
+  const mine = contacts;
   await withRetry(() => setDoc(doc(db, 'workshops', code, 'participantScans', profile.id), {
     scannerId12: profile.id.slice(0, 12),
     scannerLat: profile.lat,
@@ -67,13 +68,39 @@ export async function saveScans(code, profile, contacts) {
   }));
 }
 
-// Qui m'a scanné ? Une seule requête ciblée : remplace l'agrégat meta/scansAggregated de la v2
-// (qui figeait la liste au premier arrivant et perdait les scans des retardataires).
+// workshops/{CODE}/rencontres/{de}_{vers} : UN petit document par scan.
+// Seule la personne scannée le lit : le coût en lectures croît comme le nombre de scans,
+// et non comme son carré (ce qu'aurait coûté l'écoute des listes complètes).
+// Identifiant fixe : rescanner la même personne ne crée pas de doublon.
+export async function saveRencontre(code, profile, toId12) {
+  await ensureAuth();
+  const from = profile.id.slice(0, 12);
+  await withRetry(() => setDoc(doc(db, 'workshops', code, 'rencontres', `${from}_${toId12}`), {
+    fromId12: from,
+    fromLat: profile.lat,
+    fromLon: profile.lon,
+    fromPseudo: profile.pseudo,
+    toId12,
+    timestamp: new Date().toISOString()
+  }));
+}
+
+const rencontresVers = (code, id12) =>
+  query(collection(db, 'workshops', code, 'rencontres'), where('toId12', '==', id12));
+
+const versContact = d => ({ id: d.fromId12, lat: d.fromLat, lon: d.fromLon, pseudo: d.fromPseudo || 'Anonyme' });
+
+// Qui m'a scanné ? (lecture ponctuelle, bouton « Actualiser »)
 export async function fetchReciprocal(code, id12) {
   await ensureAuth();
-  const q = query(collection(db, 'workshops', code, 'participantScans'), where('scannedIds', 'array-contains', id12));
-  const snap = await withRetry(() => getDocs(q));
-  return snap.docs.map(d => d.data())
-    .filter(d => d.scannerId12 && d.scannerId12 !== id12)
-    .map(d => ({ id: d.scannerId12, lat: d.scannerLat, lon: d.scannerLon, pseudo: d.scannerPseudo || 'Anonyme' }));
+  const snap = await withRetry(() => getDocs(rencontresVers(code, id12)));
+  return snap.docs.map(d => versContact(d.data()));
+}
+
+// Même chose en temps réel : cb(liste) à chaque nouveau scan me concernant
+export async function watchReciprocal(code, id12, cb) {
+  await ensureAuth();
+  return onSnapshot(rencontresVers(code, id12),
+    snap => cb(snap.docChanges().filter(ch => ch.type === 'added').map(ch => versContact(ch.doc.data()))),
+    err => console.warn('Écoute des rencontres interrompue', err));
 }
