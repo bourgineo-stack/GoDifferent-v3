@@ -122,3 +122,9 @@ export async function watchMyGroup(code, id12, cb) {
     cb(docs[0] || null);
   }, err => console.warn('Écoute du groupe interrompue', err));
 }
+
+// workshops/{CODE}/responses/{id} : engagements individuels (27 champs identiques à la v2)
+export async function saveResponse(code, id, data) {
+  await ensureAuth();
+  await withRetry(() => setDoc(doc(db, 'workshops', code, 'responses', id), data));
+}

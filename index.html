@@ -411,6 +411,66 @@
     <button type="button" class="btn" data-action="next">Les 5 minutes sont écoulées</button>
   </section>
 
+  <!-- ==================== ÉTAPE 6 : ENGAGEMENTS ==================== -->
+  <section data-screen="step6" data-step="step6" hidden>
+    <h1>Mes engagements</h1>
+    <p class="chapo">Quatre questions pour finir. Vos réponses restent anonymes.</p>
+    <form id="form-engagements" novalidate>
+      <div class="carte">
+        <h2>1. Quelle alternative envisagez-vous ?</h2>
+        <label for="alt1">Mon premier choix</label>
+        <select id="alt1"></select>
+        <p id="potentiel" class="verdict ok potentiel" hidden></p>
+        <label for="alt2">Mon plan B (facultatif)</label>
+        <select id="alt2"></select>
+      </div>
+      <div class="carte">
+        <h2>2. Qu'est-ce qui vous freine le plus ?</h2>
+        <label for="frein1">Frein principal</label>
+        <select id="frein1"></select>
+        <input id="frein1_autre" placeholder="Précisez" hidden>
+        <label for="frein2">Frein secondaire (facultatif)</label>
+        <select id="frein2"></select>
+        <input id="frein2_autre" placeholder="Précisez" hidden>
+      </div>
+      <div class="carte">
+        <h2>3. Qu'est-ce qui vous aiderait le plus ?</h2>
+        <label for="levier1">Levier principal</label>
+        <select id="levier1"></select>
+        <input id="levier1_autre" placeholder="Précisez" hidden>
+        <label for="levier2">Levier secondaire (facultatif)</label>
+        <select id="levier2"></select>
+        <input id="levier2_autre" placeholder="Précisez" hidden>
+      </div>
+      <div class="carte">
+        <h2>4. Votre niveau d'engagement</h2>
+        <div id="engagement" role="radiogroup" aria-label="Niveau d'engagement"></div>
+        <div id="bloc-frequence" hidden>
+          <label for="freq-min">Ce que je peux garantir</label>
+          <select id="freq-min"></select>
+          <label for="freq-max">Ce que je vise à terme</label>
+          <select id="freq-max"></select>
+          <label for="proba">Si tous les freins étaient levés, quelle chance d'atteindre cet objectif ?</label>
+          <select id="proba"></select>
+        </div>
+      </div>
+      <div class="nav-etapes">
+        <button type="button" class="btn-retour" data-action="prev">Retour</button>
+        <button type="submit" class="btn">Valider</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ==================== BILAN ==================== -->
+  <section data-screen="bilan" data-step="step6" hidden>
+    <h1>Votre bilan</h1>
+    <div id="bilan-contenu"></div>
+    <button type="button" id="btn-pdf" class="btn">Télécharger mon bilan PDF</button>
+    <p class="aide centre">Le PDF reprend ce bilan et les résultats de votre groupe.</p>
+    <div class="nav-etapes"><button type="button" class="btn-retour" data-action="goto" data-target="step6">Modifier mes réponses</button></div>
+    <p class="merci">Merci pour votre participation ! Un rapport de synthèse anonyme sera remis à votre entreprise.</p>
+  </section>
+
   <!-- FIN DES ÉCRANS : les écrans des lots suivants s'insèrent au-dessus de cette ligne -->
 </main>
 

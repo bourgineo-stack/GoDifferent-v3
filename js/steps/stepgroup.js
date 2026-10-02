@@ -277,14 +277,16 @@ function toV2() {
 function push(extra = {}) {
   const { data, phaseNotes } = toV2();
   const s = g();
-  return saveGroup(store.get().code, s.id, {
+  const payload = {
     distance: s.distance === 'proche' ? 'proche' : 'eloigne',
     themes: THEMES[s.distance].map(t => t.key).join(','),
     data: JSON.stringify(data), phaseNotes: JSON.stringify(phaseNotes),
     statut: s.statut, themeIdx: s.themeIdx, phaseIdx: s.phaseIdx,
     phaseDebut: s.phaseDebut, discussionDebut: s.discussionDebut,
     ...extra
-  }).then(() => true).catch(err => { console.warn('Groupe pas encore enregistré', err); return false; });
+  };
+  setG({ doc: { ...(s.doc || {}), ...payload, id: s.id } }); // même forme que chez les membres (sert au bilan)
+  return saveGroup(store.get().code, s.id, payload).then(() => true).catch(err => { console.warn('Groupe pas encore enregistré', err); return false; });
 }
 
 // ---------- Scribe : synthèse ----------

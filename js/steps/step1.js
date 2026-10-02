@@ -63,7 +63,7 @@ async function onJoin(e) {
     if (!ws || (ws.expirationDate && ws.expirationDate < today())) {
       return toast("Code inconnu ou atelier terminé. Vérifiez le code auprès de l'animateur.", 'error');
     }
-    if (store.get().code !== code) store.set({ profile: null, contacts: [], game: null, groupe: null }); // autre atelier : on repart de zéro
+    if (store.get().code !== code) store.set({ profile: null, contacts: [], game: null, groupe: null, reponse: null }); // autre atelier : on repart de zéro
     store.set({
       code,
       workshop: {

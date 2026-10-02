@@ -244,4 +244,22 @@ textarea:focus { outline: none; border-color: var(--bleu); }
 .cercles { grid-template-columns: 1fr 1fr; }
 .cercles .pastille { width: 34px; height: 34px; }
 
+/* ===== Lot 5 : engagements et bilan ===== */
+#form-engagements h2 { font-size: 1.1rem; }
+#form-engagements .carte > label:first-of-type { margin-top: 0; }
+#form-engagements input[id$="_autre"] { margin-top: 8px; }
+#engagement .case { margin-top: 12px; }
+.potentiel { margin-top: 10px; font-size: .92rem; }
+.bilan-tete { text-align: center; }
+.bilan-chiffre { font-size: 3rem; font-weight: 800; line-height: 1.1; color: var(--vert); font-variant-numeric: tabular-nums; margin: 6px 0; }
+.bilan-chiffre small { display: block; font-size: 1rem; color: var(--texte); }
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; text-align: center; }
+.trio > div { background: var(--surface); border-radius: var(--r-champ); padding: 12px 6px; }
+.trio > div p:last-child { font-weight: 800; font-size: 1.1rem; }
+.trio .fort { outline: 2px solid var(--vert); }
+.hypotheses { margin-top: 18px; font-size: .88rem; color: var(--texte-doux); }
+.hypotheses summary { cursor: pointer; color: var(--bleu); font-weight: 600; }
+.hypotheses p { margin-top: 8px; }
+.merci { margin-top: 28px; text-align: center; font-weight: 600; }
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

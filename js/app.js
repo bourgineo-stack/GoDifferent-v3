@@ -7,6 +7,7 @@ import * as step3 from './steps/step3.js';
 import * as step4 from './steps/step4.js';
 import * as step5 from './steps/step5.js';
 import * as stepgroup from './steps/stepgroup.js';
+import * as step6 from './steps/step6.js';
 
 step1.init();
 step2.init();
@@ -14,6 +15,7 @@ step3.init();
 step4.init();
 step5.init();
 stepgroup.init();
+step6.init();
 
 // Boutons de navigation génériques : data-action="next" | "prev" | "reset"
 document.addEventListener('click', e => {
