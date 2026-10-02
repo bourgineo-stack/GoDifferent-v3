@@ -29,3 +29,8 @@ export function direction(deg) {
   const noms = ['au nord', 'au nord-est', "à l'est", 'au sud-est', 'au sud', 'au sud-ouest', "à l'ouest", 'au nord-ouest'];
   return noms[Math.round(deg / 45) % 8];
 }
+
+// « vers le nord », « vers l'est »...
+export function vers(deg) {
+  return direction(deg).replace(/^au /, 'vers le ').replace(/^à l'/, "vers l'");
+}

@@ -114,6 +114,7 @@ input[type="time"] { color-scheme: dark; }
 .btn-retour { background: transparent; color: var(--texte-doux); border: 0; font-weight: 600; width: auto; padding: 14px 8px; }
 .nav-etapes { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: end; }
 .nav-etapes > * { margin-top: 24px; }
+.nav-etapes > .btn { grid-column: 2; } /* reste à droite même sans bouton Retour */
 
 /* ===== Pseudo ===== */
 .badge-pseudo { text-align: center; }
@@ -198,5 +199,49 @@ input[type="time"] { color-scheme: dark; }
 .legende { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .legende li { display: flex; gap: 10px; align-items: center; padding: 10px; background: var(--surface); border-radius: var(--r-champ); font-size: .9rem; }
 .pastille { width: 22px; height: 22px; border-radius: 50%; flex: none; }
+
+/* ===== Lot 4 : co-construction ===== */
+textarea { width: 100%; font: inherit; color: var(--texte); background: var(--surface-2); border: 2px solid var(--trait); border-radius: var(--r-champ); padding: 12px 14px; resize: vertical; }
+textarea:focus { outline: none; border-color: var(--bleu); }
+.etiquette { font-size: .8rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--texte-doux); margin-bottom: 4px; }
+.roles .carte { margin: 0; padding: 16px 14px; }
+.regle { font-weight: 800; font-size: 1.05rem; }
+.choix-parcours { display: grid; gap: 4px; width: 100%; text-align: left; font: inherit; color: var(--texte); border: 2px solid var(--trait); cursor: pointer; }
+.choix-parcours strong { font-size: 1.2rem; }
+.choix-parcours:hover, .choix-parcours:focus-visible { border-color: var(--orange); }
+#reco-distance { margin-bottom: 18px; }
+
+.disc-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.disc-theme { font-size: 1.3rem; font-weight: 800; border-left: 6px solid var(--theme, var(--orange)); padding-left: 10px; }
+.disc-chrono { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--texte-doux); white-space: nowrap; }
+.disc-chrono.depasse, .chrono.depasse { color: var(--orange); }
+.phases { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 14px 0; }
+.phases li { text-align: center; padding: 8px 4px; border-radius: 8px; background: var(--surface); color: var(--texte-doux); font-weight: 600; font-size: .9rem; border-bottom: 3px solid var(--trait); }
+.phases li.fait { color: var(--texte); border-bottom-color: var(--vert); }
+.phases li.ici { color: var(--texte); background: var(--surface-2); border-bottom-color: var(--orange); }
+.consigne { font-size: .92rem; padding: 12px 14px; border-radius: var(--r-champ); background: color-mix(in srgb, var(--violet) 18%, var(--surface)); margin-bottom: 16px; }
+.question-texte { font-size: 1.15rem; font-weight: 800; margin-bottom: 4px; }
+.question .btn { margin-top: 14px; }
+.reponse { margin-top: 14px; padding: 12px 14px; border-left: 6px solid var(--vert); background: var(--surface-2); border-radius: 0 var(--r-champ) var(--r-champ) 0; font-weight: 600; }
+.sous-titre { font-size: 1rem; margin: 20px 0 10px; }
+.puces { padding-left: 22px; display: grid; gap: 6px; }
+.compteurs { list-style: none; display: grid; gap: 8px; }
+.compteurs li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 8px 8px 14px; background: var(--surface); border-radius: var(--r-champ); }
+.compteur { display: flex; align-items: center; gap: 4px; flex: none; }
+.compteur button { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--trait); background: var(--surface-2); color: var(--texte); font: inherit; font-size: 1.3rem; font-weight: 800; cursor: pointer; }
+.compteur button[data-delta="1"] { border-color: var(--orange); }
+.compteur strong { min-width: 28px; text-align: center; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.synthese { border-left: 6px solid var(--theme); }
+.synthese h3 { margin-bottom: 8px; }
+.synthese .etiquette { margin-top: 12px; }
+
+.chrono { font-size: 4.5rem; line-height: 1; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; margin: 24px 0 6px; white-space: nowrap; }
+.chrono-cible { text-align: center; color: var(--texte-doux); font-weight: 600; margin-bottom: 18px; }
+.barre { height: 10px; border-radius: 5px; background: var(--surface-2); overflow: hidden; margin-top: 18px; }
+.barre span { display: block; height: 100%; width: 0; background: var(--bleu); transition: width 1s linear; }
+.liens { list-style: none; display: grid; gap: 8px; }
+.liens a { display: block; padding: 14px 16px; background: var(--surface); border-radius: var(--r-champ); font-weight: 600; text-decoration: none; }
+.cercles { grid-template-columns: 1fr 1fr; }
+.cercles .pastille { width: 34px; height: 34px; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

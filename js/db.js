@@ -104,3 +104,21 @@ export async function watchReciprocal(code, id12, cb) {
     snap => cb(snap.docChanges().filter(ch => ch.type === 'added').map(ch => versContact(ch.doc.data()))),
     err => console.warn('Écoute des rencontres interrompue', err));
 }
+
+// workshops/{CODE}/groups/{id} : écrit par le scribe à chaque étape de la discussion
+// (champs v2 conservés, plus statut/themeIdx/phaseIdx/phaseDebut/discussionDebut/scribePseudo).
+export async function saveGroup(code, id, data) {
+  await ensureAuth();
+  await withRetry(() => setDoc(doc(db, 'workshops', code, 'groups', id), { ...data, timestamp: new Date().toISOString() }, { merge: true }));
+}
+
+// Le groupe dont je fais partie, en temps réel (membres et maître du temps)
+export async function watchMyGroup(code, id12, cb) {
+  await ensureAuth();
+  const q = query(collection(db, 'workshops', code, 'groups'), where('memberIds', 'array-contains', id12));
+  return onSnapshot(q, snap => {
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    docs.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+    cb(docs[0] || null);
+  }, err => console.warn('Écoute du groupe interrompue', err));
+}

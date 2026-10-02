@@ -300,6 +300,117 @@
     </div>
   </section>
 
+  <!-- ==================== CO-CONSTRUCTION : RÔLES ==================== -->
+  <section data-screen="groupe-roles" data-step="stepgroup" hidden>
+    <h1>Formez votre groupe</h1>
+    <p class="chapo">Mettez-vous en cercle avec vos voisins, de 3 à 8 personnes, et désignez deux rôles.</p>
+    <div class="duo roles">
+      <div class="carte"><p class="etiquette">Scribe</p><p id="regle-scribe" class="regle"></p><p class="aide">Tient le téléphone du groupe et anime.</p></div>
+      <div class="carte"><p class="etiquette">Maître du temps</p><p id="regle-temps" class="regle"></p><p class="aide">Surveille le chrono et fait avancer.</p></div>
+    </div>
+    <button type="button" class="btn" data-role="scribe">Je suis le scribe</button>
+    <button type="button" class="btn btn-second" data-role="timer">Je suis le maître du temps</button>
+    <button type="button" class="btn btn-second" data-role="membre">Je suis membre du groupe</button>
+    <div class="nav-etapes"><button type="button" class="btn-retour" data-action="prev">Retour</button></div>
+  </section>
+
+  <!-- Membre et maître du temps : attendre d'être scanné -->
+  <section data-screen="groupe-attente" data-step="stepgroup" hidden>
+    <h1 id="attente-role"></h1>
+    <p class="chapo">Montrez ce code au scribe. L'écran passera tout seul à la suite dès qu'il vous aura scanné.</p>
+    <div class="carte centre"><div id="qr-groupe" class="qr"></div></div>
+    <button type="button" id="btn-attente-suite" class="btn btn-second">J'ai été scanné, continuer</button>
+    <div class="nav-etapes"><button type="button" class="btn-retour" data-changer-role>Changer de rôle</button></div>
+  </section>
+
+  <!-- Scribe : scanner les membres -->
+  <section data-screen="groupe-scan" data-step="stepgroup" hidden>
+    <h1>Scannez votre groupe</h1>
+    <p class="chapo">Scannez le code de chaque membre, maître du temps compris.</p>
+    <div id="cam-groupe" class="camera" hidden></div>
+    <button type="button" id="btn-scan-groupe" class="btn">Scanner un membre</button>
+    <h2 class="intertitre">Membres</h2>
+    <ul id="liste-membres" class="contacts"></ul>
+    <button type="button" id="btn-valider-groupe" class="btn" disabled>Valider le groupe</button>
+    <div class="nav-etapes"><button type="button" class="btn-retour" data-changer-role>Changer de rôle</button></div>
+  </section>
+
+  <!-- Scribe : proches ou éloignés -->
+  <section data-screen="groupe-distance" data-step="stepgroup" hidden>
+    <h1>Votre groupe habite plutôt…</h1>
+    <p id="reco-distance" class="verdict" hidden></p>
+    <button type="button" class="carte choix-parcours" data-distance="proche">
+      <strong>Près du travail</strong><span>Moins de <span data-seuil>5</span> km</span>
+      <span class="aide">Sujets : mobilité active, transports en commun</span>
+    </button>
+    <button type="button" class="carte choix-parcours" data-distance="eloigne">
+      <strong>Loin du travail</strong><span>Plus de <span data-seuil>5</span> km</span>
+      <span class="aide">Sujets : covoiturage, électrique et autopartage</span>
+    </button>
+  </section>
+
+  <!-- Scribe : discussion -->
+  <section data-screen="groupe-discussion" data-step="stepgroup" hidden>
+    <div class="disc-tete">
+      <p id="disc-theme" class="disc-theme"></p>
+      <p id="disc-chrono" class="disc-chrono"></p>
+    </div>
+    <ol id="disc-phases" class="phases"></ol>
+    <p id="disc-consigne" class="consigne"></p>
+    <div id="phase-contenu"></div>
+    <label for="phase-notes">Notes de cette phase</label>
+    <textarea id="phase-notes" rows="3" placeholder="Ce que le groupe retient, en quelques mots"></textarea>
+    <div class="nav-etapes">
+      <button type="button" id="btn-phase-prec" class="btn-retour">Précédent</button>
+      <button type="button" id="btn-phase-suiv" class="btn">Phase suivante</button>
+    </div>
+  </section>
+
+  <!-- Scribe : synthèse -->
+  <section data-screen="groupe-synthese" data-step="stepgroup" hidden>
+    <h1>Synthèse du groupe</h1>
+    <div id="synthese-contenu"></div>
+    <label for="synthese-notes">Le mot de la fin</label>
+    <p class="aide">En 2 ou 3 lignes : qui s'engage à quoi, et que demandez-vous à l'entreprise ? Ces notes alimenteront le plan de mobilité.</p>
+    <textarea id="synthese-notes" rows="4"></textarea>
+    <button type="button" id="btn-fin-groupe" class="btn">Enregistrer et terminer</button>
+  </section>
+
+  <!-- Maître du temps : chrono -->
+  <section data-screen="groupe-chrono" data-step="stepgroup" hidden>
+    <p class="etiquette">Maître du temps</p>
+    <h1 id="chrono-sujet"></h1>
+    <p id="chrono-phase" class="chapo"></p>
+    <p id="chrono-temps" class="chrono">--:--</p>
+    <p id="chrono-cible" class="chrono-cible"></p>
+    <p id="chrono-alerte" class="verdict ko" hidden><strong>Temps dépassé</strong><br>Proposez au scribe de passer à la suite.</p>
+    <div class="barre"><span id="chrono-barre"></span></div>
+    <p id="chrono-total" class="aide"></p>
+    <div id="chrono-fin" hidden>
+      <p class="verdict ok">La discussion est terminée. Annoncez au groupe le passage aux cercles.</p>
+      <button type="button" class="btn" data-action="goto" data-target="groupe-cercles">Rejoindre les cercles</button>
+    </div>
+  </section>
+
+  <!-- Membre : suivi -->
+  <section data-screen="groupe-suivi" data-step="stepgroup" hidden>
+    <h1>Discussion en cours</h1>
+    <p class="chapo">Tout se passe sur le téléphone de <strong id="suivi-scribe"></strong>. Participez de vive voix !</p>
+    <p id="suivi-etat" class="verdict"></p>
+    <h2 class="intertitre">Ressources à consulter</h2>
+    <p class="aide">Cherchez des réponses aux questions du scribe.</p>
+    <ul id="suivi-ressources" class="liens"></ul>
+    <div id="suivi-fin" hidden><button type="button" class="btn" data-action="goto" data-target="groupe-cercles">Rejoindre les cercles</button></div>
+  </section>
+
+  <!-- Tous : regroupement par intention -->
+  <section data-screen="groupe-cercles" data-step="stepgroup" hidden>
+    <h1>Rejoignez votre cercle</h1>
+    <p class="chapo">Pendant 5 minutes, placez-vous dans le cercle du mode que vous aimeriez essayer et échangez avec ceux qui partagent cette envie. Pas encore décidé ? Restez au centre.</p>
+    <ul id="liste-cercles" class="legende cercles"></ul>
+    <button type="button" class="btn" data-action="next">Les 5 minutes sont écoulées</button>
+  </section>
+
   <!-- FIN DES ÉCRANS : les écrans des lots suivants s'insèrent au-dessus de cette ligne -->
 </main>
 

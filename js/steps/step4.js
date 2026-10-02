@@ -4,7 +4,7 @@ import { store } from '../store.js';
 import { onEnter } from '../router.js';
 import { startScan, stopScan, isScanning, cameraError } from '../scanner.js';
 import { myPayload, renderQR } from '../qr.js';
-import { roadKm, fmtKm, bearing, direction } from '../calc.js';
+import { roadKm, fmtKm, bearing, direction, vers } from '../calc.js';
 import { $, esc, toast } from '../ui.js';
 import { CONFIG } from '../config.js';
 
@@ -58,13 +58,15 @@ function onCode(raw) {
   const v = $('#verdict4');
   if (d.repere) {
     v.className = 'verdict';
-    v.innerHTML = `Vous habitez à ${fmtKm(km)} de <strong>${esc(d.nom)}</strong>, ${direction(bearing(d, me))} : placez-vous de ce côté du repère.`;
+    v.innerHTML = `<strong>Placez-vous ${direction(bearing(d, me))} de ce repère (${esc(d.nom)})</strong><br>Votre domicile en est à ${fmtKm(km)}.`;
   } else if (km < CONFIG.DISTANCE_THRESHOLD_KM) {
     v.className = 'verdict ok';
-    v.innerHTML = `<strong>${esc(d.nom)}</strong> habite à ${fmtKm(km)} de chez vous : restez côte à côte.`;
+    v.innerHTML = `<strong>Restez à côté de ${esc(d.nom)}</strong><br>Vos domiciles sont à ${fmtKm(km)} l'un de l'autre.`;
   } else {
+    const cap = bearing(me, d);
     v.className = 'verdict ko';
-    v.innerHTML = `<strong>${esc(d.nom)}</strong> habite à ${fmtKm(km)} de chez vous, ${direction(bearing(me, d))} : il devrait se trouver de ce côté par rapport à vous. Écartez-vous.`;
+    v.innerHTML = `<strong>Écartez-vous de ${esc(d.nom)} : ${fmtKm(km)} entre vos domiciles</strong><br>` +
+      `${esc(d.nom)} habite ${direction(cap)} de chez vous : lui va ${vers(cap)}, vous ${vers((cap + 180) % 360)}.`;
   }
   v.hidden = false;
   return false; // un verdict à la fois : on lit, on bouge, on rescanne

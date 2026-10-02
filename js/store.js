@@ -8,7 +8,8 @@ const defaults = () => ({
   step: 'step1',     // étape courante (sert au fil de progression)
   screen: '',        // écran courant
   contacts: [],      // personnes rencontrées { id, lat, lon, pseudo, distance, source }
-  game: null         // jeu des voisins { targets, found, attempts }
+  game: null,        // jeu des voisins { targets, found, attempts }
+  groupe: null       // co-construction : rôle, membres, votes, notes (voir stepgroup.js)
 });
 
 function load() {
