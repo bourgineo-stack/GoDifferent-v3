@@ -1,6 +1,7 @@
 // Point d'entrée.
 import { store } from './store.js';
 import { show, next, prev } from './router.js';
+import { fetchWorkshop } from './db.js';
 import * as step1 from './steps/step1.js';
 import * as step2 from './steps/step2.js';
 import * as step3 from './steps/step3.js';
@@ -42,3 +43,10 @@ const s = store.get();
 if (s.workshop && s.profile && s.screen) show(s.screen);
 else if (s.workshop) show('step1-profil');
 else show('step1-accueil');
+
+// Si l'animateur a corrigé l'atelier (adresse, étapes), on récupère la version à jour (1 lecture)
+if (s.code && s.workshop) {
+  fetchWorkshop(s.code).then(ws => {
+    if (ws) store.set({ workshop: { companyLat: ws.companyLat, companyLon: ws.companyLon, steps: ws.steps || {}, capacity: ws.capacity || null, expirationDate: ws.expirationDate } });
+  }).catch(e => console.warn('Atelier non actualisé', e));
+}

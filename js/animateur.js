@@ -55,6 +55,8 @@ function ouvrir() {
   $('#accueil').hidden = true;
   $('#tableau').hidden = false;
   $('#code-atelier').textContent = S.code;
+  // Le centre de la carte = l'adresse de l'entreprise saisie dans l'outil admin
+  $('#centre').textContent = `Centre : ${S.ws.companyAddress || `${(+S.ws.companyLat).toFixed(4)}, ${(+S.ws.companyLon).toFixed(4)}`}`;
   // Invitation : QR vers l'app participant (même dossier), code déjà rempli
   const url = `${location.href.replace(/animateur\.html.*$/, '')}?code=${encodeURIComponent(S.code)}`;
   const qr = (el, taille) => { el.innerHTML = ''; new window.QRCode(el, { text: url, width: taille, height: taille, colorDark: '#15132A', colorLight: '#ffffff' }); };
@@ -396,7 +398,7 @@ function arreterRejeu() {
 // ===================== Démonstration (aucune donnée Firestore) =====================
 function demo() {
   S.code = 'DÉMONSTRATION';
-  S.ws = { companyLat: 47.322, companyLon: 5.041, capacity: 60 };
+  S.ws = { companyLat: 47.322, companyLon: 5.041, capacity: 60, companyAddress: 'Dijon (démonstration)' };
   ouvrir();
   const modes = [['car-thermal', 46], ['car-electric', 6], ['carpool', 8], ['bus', 10], ['train', 6], ['bike', 12], ['ebike', 6], ['walk', 4], ['remote', 2]];
   const tirerMode = () => { let r = Math.random() * 100; for (const [m, w] of modes) { if ((r -= w) < 0) return m; } return 'car-thermal'; };

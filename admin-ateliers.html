@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoDifferent — Admin Ateliers</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3344;
+    --text: #e4e6f0;
+    --text-dim: #8b90a5;
+    --accent: #22c55e;
+    --accent-dim: #16a34a;
+    --accent-glow: rgba(34, 197, 94, 0.15);
+    --danger: #ef4444;
+    --danger-dim: rgba(239, 68, 68, 0.12);
+    --warning: #f59e0b;
+    --radius: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  header {
+    max-width: 900px;
+    margin: 0 auto 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.4rem;
+    letter-spacing: -0.5px;
+  }
+
+  header h1 span { color: var(--accent); }
+  .adresse-ligne { display: flex; gap: 8px; }
+  .adresse-ligne input { flex: 1; }
+  .adresse-choix { display: grid; gap: 6px; margin-top: 8px; }
+  .adresse-choix button { text-align: left; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; cursor: pointer; font: inherit; }
+  .adresse-choix button:hover { border-color: var(--accent); }
+  .adresse-retenue { margin-top: 8px; font-size: 0.85rem; color: var(--text-dim); }
+  .adresse-retenue.ok { color: var(--accent); }
+  .adresse-retenue a { color: inherit; }
+
+  .badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    background: var(--accent-glow);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  /* ---- Auth section ---- */
+  #auth-section {
+    max-width: 420px;
+    margin: 80px auto;
+    text-align: center;
+  }
+
+  #auth-section p {
+    color: var(--text-dim);
+    margin: 12px 0 24px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  /* ---- Main layout ---- */
+  .container { max-width: 900px; margin: 0 auto; }
+
+  /* ---- Cards ---- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card h2 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ---- Form ---- */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-grid .full { grid-column: 1 / -1; }
+
+  label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  input::placeholder { color: #555a6e; }
+
+  .checkbox-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .checkbox-row label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .checkbox-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+  }
+
+  /* ---- Buttons ---- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0f1117;
+  }
+  .btn-primary:hover { background: var(--accent-dim); }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); }
+
+  .btn-danger {
+    background: var(--danger-dim);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+  .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* ---- Table ---- */
+  .table-wrap {
+    overflow-x: auto;
+    margin-top: 16px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tr:hover td { background: rgba(34, 197, 94, 0.04); }
+
+  .status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .status-active {
+    background: var(--accent-glow);
+    color: var(--accent);
+  }
+
+  .status-expired {
+    background: var(--danger-dim);
+    color: var(--danger);
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn-sm {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+  }
+
+  /* ---- Toast ---- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-success { background: var(--accent); color: #0f1117; }
+  .toast-error { background: var(--danger); color: white; }
+
+  /* ---- Stats ---- */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .stat-card .value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.6rem;
+    color: var(--accent);
+  }
+
+  .stat-card .label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-row { flex-direction: column; }
+    body { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== AUTH ==================== -->
+
+
+<!-- ==================== MAIN ==================== -->
+<div id="main-section" style="display: none;">
+  <header>
+    <h1>Go<span>Different</span> admin</h1>
+    <span class="badge">v2 Firebase</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+     
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="value" id="statTotal">-</div><div class="label">Ateliers total</div></div>
+      <div class="stat-card"><div class="value" id="statActive">-</div><div class="label">Actifs</div></div>
+      <div class="stat-card"><div class="value" id="statExpired">-</div><div class="label">Expirés</div></div>
+    </div>
+
+    <!-- Formulaire création -->
+    <div class="card" id="formCard">
+      <h2>➕ Nouvel atelier</h2>
+      <div class="form-grid">
+        <div>
+          <label>Code d'accès (= identifiant unique)</label>
+          <input id="f-code" placeholder="ex: CARSAT-2026" style="text-transform:uppercase;">
+        </div>
+
+        <div>
+          <label>Date d'expiration</label>
+          <input id="f-expiration" type="date">
+        </div>
+        <div>
+          <label>Capacité max (participants)</label>
+          <input id="f-capacity" type="number" value="200" min="10" max="2000">
+        </div>
+        <div class="full">
+          <label>Adresse de l'entreprise (lieu de l'atelier)</label>
+          <div class="adresse-ligne">
+            <input id="f-adresse" placeholder="ex : 2 rue Jean Renaud, 21000 Dijon">
+            <button type="button" class="btn btn-secondary" onclick="localiser()">📍 Localiser</button>
+          </div>
+          <div id="adresse-choix" class="adresse-choix hidden"></div>
+          <p id="adresse-retenue" class="adresse-retenue">Aucune adresse localisée.</p>
+          <input id="f-lat" type="hidden"><input id="f-lon" type="hidden">
+        </div>
+        <div class="full">
+          <label>URL Google Apps Script (pour les groupes)</label>
+          <input id="f-gas" placeholder="https://script.google.com/macros/s/AKfycbw...">
+        </div>
+        <div class="full">
+          <label>Étapes activées</label>
+          <div class="checkbox-row">
+            <label><input type="checkbox" id="f-step3" checked> Voisins (jeu)</label>
+            <label><input type="checkbox" id="f-step4" checked> Carte humaine</label>
+            <label><input type="checkbox" id="f-step5" checked> Pelotes</label>
+            <label><input type="checkbox" id="f-stepgroup" checked> Co-construction en groupe</label>
+            <label><input type="checkbox" id="f-step6" checked> Engagements et bilan</label>
+          </div>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveWorkshop()" id="saveBtn">💾 Créer l'atelier</button>
+        <button class="btn btn-secondary hidden" onclick="cancelEdit()" id="cancelBtn">Annuler</button>
+      </div>
+    </div>
+
+    <!-- Liste des ateliers -->
+    <div class="card">
+      <h2>📋 Ateliers existants</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Expiration</th>
+              <th>Capacité</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="workshopsList"></tbody>
+        </table>
+        <p id="emptyMsg" style="text-align:center;color:var(--text-dim);padding:24px;">Aucun atelier pour le moment.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ==================== FIREBASE SDK ==================== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+// ---- Config ----
+const firebaseConfig = {
+  apiKey: "AIzaSyA1kCMI8y79U6BIxKfNc-uKUpiouc0HyIM",
+  authDomain: "godifferent-v2.firebaseapp.com",
+  projectId: "godifferent-v2",
+  storageBucket: "godifferent-v2.firebasestorage.app",
+  messagingSenderId: "954459641914",
+  appId: "1:954459641914:web:55e904e1a05cd2de307d03"
+};
+
+
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+const ADMIN_EMAIL = "bourgineo@gmail.com"; // ← Remplace par ton email Google exact
+
+let editingCode = null; // null = création, string = édition
+
+// Connexion Google obligatoire avant tout
+window.addEventListener('load', async () => {
+  // Déconnecte d'abord pour éviter les sessions persistantes
+  try {
+    await signOut(auth);
+  } catch (e) {
+    console.log("Aucune session à déconnecter");
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Vérifie si l'email correspond à l'admin
+      if (user.email === ADMIN_EMAIL) {
+        document.getElementById('main-section').style.display = 'block';
+        try {
+          await loadWorkshops(); // Charge les ateliers
+        } catch (err) {
+          console.error("Erreur lors du chargement des ateliers :", err);
+          toast("Erreur de permissions : " + err.message, "error");
+        }
+      } else {
+        // Déconnecte l'utilisateur non autorisé
+        toast("Compte non autorisé : " + user.email, "error");
+        await signOut(auth);
+        document.getElementById('main-section').style.display = 'none';
+      }
+    } else {
+      // Aucun utilisateur connecté : lance la pop-up
+      document.getElementById('main-section').style.display = 'none';
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (e) {
+        console.error("Erreur de connexion :", e);
+        toast("Erreur de connexion : " + e.message, "error");
+      }
+    }
+  });
+});
+
+
+// ---- Expose functions to window for onclick ----
+
+window.saveWorkshop = saveWorkshop;
+window.cancelEdit = cancelEdit;
+window.editWorkshop = editWorkshop;
+window.deleteWorkshop = deleteWorkshop;
+window.duplicateWorkshop = duplicateWorkshop;
+window.localiser = localiser;
+window.purgeWorkshop = purgeWorkshop;
+
+// ==================== AUTH ====================
+
+
+
+
+
+// ==================== CRUD ====================
+
+async function saveWorkshop() {
+  const code = document.getElementById('f-code').value.trim().toUpperCase().replace(/\s+/g, '-');
+  const expiration = document.getElementById('f-expiration').value;
+  const capacity = parseInt(document.getElementById('f-capacity').value) || 200;
+  const lat = parseFloat(document.getElementById('f-lat').value);
+  const lon = parseFloat(document.getElementById('f-lon').value);
+  const adresse = document.getElementById('f-adresse').value.trim();
+  const gasUrl = document.getElementById('f-gas').value.trim();
+
+  if (!code || !expiration) {
+  return toast("Code et date d'expiration sont obligatoires", "error");
+}
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return toast("Localisez l'adresse de l'entreprise avant d'enregistrer", "error");
+  }
+
+  // Vérifier doublon en création
+  if (!editingCode) {
+    const existing = await getDoc(doc(db, "workshops", code));
+    if (existing.exists()) {
+      return toast("Ce code existe déjà !", "error");
+    }
+  }
+
+const data = {
+  expirationDate: expiration,
+  capacity: capacity,
+  companyLat: lat,
+  companyLon: lon,
+  companyAddress: adresse,
+  lienAtelier: gasUrl,
+  steps: {
+    step3: document.getElementById('f-step3').checked,
+    step4: document.getElementById('f-step4').checked,
+    step5: document.getElementById('f-step5').checked,
+    stepgroup: document.getElementById('f-stepgroup').checked,
+    step6: document.getElementById('f-step6').checked
+  },
+  createdAt: editingCode ? undefined : new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+};
+
+  // Remove undefined fields
+  Object.keys(data).forEach(k => data[k] === undefined && delete data[k]);
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = "Enregistrement...";
+
+  try {
+    const docId = editingCode || code;
+    await setDoc(doc(db, "workshops", docId), data, { merge: true });
+    toast(editingCode ? "Atelier modifié !" : "Atelier créé !", "success");
+    cancelEdit();
+    loadWorkshops();
+  } catch (err) {
+    toast("Erreur : " + err.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = editingCode ? "💾 Modifier" : "💾 Créer l'atelier";
+  }
+}
+
+async function loadWorkshops() {
+  const tbody = document.getElementById('workshopsList');
+  const emptyMsg = document.getElementById('emptyMsg');
+
+  try {
+    const snap = await getDocs(collection(db, "workshops"));
+    const workshops = [];
+    snap.forEach(d => workshops.push({ id: d.id, ...d.data() }));
+
+    // Stats
+    const now = new Date().toISOString().split('T')[0];
+    const active = workshops.filter(w => w.expirationDate >= now).length;
+    document.getElementById('statTotal').textContent = workshops.length;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statExpired').textContent = workshops.length - active;
+
+    if (workshops.length === 0) {
+      tbody.innerHTML = '';
+      emptyMsg.classList.remove('hidden');
+      return;
+    }
+
+    emptyMsg.classList.add('hidden');
+    workshops.sort((a, b) => (b.expirationDate || '').localeCompare(a.expirationDate || ''));
+
+    tbody.innerHTML = workshops.map(w => {
+      const expired = w.expirationDate < now;
+      return `<tr>
+        <td><strong style="font-family:'Space Mono',monospace;font-size:0.8rem;">${w.id}</strong></td>
+        <td>${w.expirationDate || '-'}</td>
+        <td>${w.capacity || '-'}</td>
+        <td><span class="status ${expired ? 'status-expired' : 'status-active'}">${expired ? 'Expiré' : 'Actif'}</span></td>
+        <td class="actions-cell">
+  <button class="btn btn-secondary btn-sm" onclick="editWorkshop('${w.id}')">✏️</button>
+  <button class="btn btn-secondary btn-sm" onclick="duplicateWorkshop('${w.id}')">📋 Dupliquer</button>
+  <button class="btn btn-secondary btn-sm" onclick="purgeWorkshop('${w.id}')" title="Effacer les données des participants, garder l'atelier">🧹 Purger</button>
+  <button class="btn btn-danger btn-sm" onclick="deleteWorkshop('${w.id}')" title="Supprimer l'atelier et toutes ses données">🗑️</button>
+</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    toast("Erreur chargement : " + err.message, "error");
+  }
+}
+
+async function editWorkshop(code) {
+  try {
+    const d = await getDoc(doc(db, "workshops", code));
+    if (!d.exists()) return toast("Atelier introuvable", "error");
+    const data = d.data();
+
+    editingCode = code;
+    afficherLieu(data);
+    document.getElementById('f-code').value = code;
+    document.getElementById('f-code').disabled = true;
+    document.getElementById('f-expiration').value = data.expirationDate || '';
+    document.getElementById('f-capacity').value = data.capacity || 200;
+    document.getElementById('f-gas').value = data.lienAtelier || '';
+    document.getElementById('f-step3').checked = data.steps?.step3 ?? true;
+    document.getElementById('f-step4').checked = data.steps?.step4 ?? true;
+    document.getElementById('f-step5').checked = data.steps?.step5 ?? true;
+    document.getElementById('f-stepgroup').checked = data.steps?.stepgroup ?? true;
+    document.getElementById('f-step6').checked = data.steps?.step6 ?? true;
+
+    document.getElementById('saveBtn').textContent = "💾 Modifier";
+    document.getElementById('cancelBtn').classList.remove('hidden');
+    document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    toast("Erreur : " + err.message, "error");
+  }
+}
+
+// Toutes les sous-collections qu'utilisent l'app v2 et la v3
+const SOUS_COLLECTIONS = ['participants', 'participantScans', 'rencontres', 'retrouvailles', 'groups', 'responses', 'meta'];
+
+// Efface toutes les données personnelles d'un atelier (par lots de 400 suppressions)
+async function effacerDonnees(code) {
+  let total = 0;
+  for (const nom of SOUS_COLLECTIONS) {
+    const snap = await getDocs(collection(db, "workshops", code, nom));
+    for (let i = 0; i < snap.docs.length; i += 400) {
+      const lot = writeBatch(db);
+      snap.docs.slice(i, i + 400).forEach(d => lot.delete(d.ref));
+      await lot.commit();
+    }
+    total += snap.size;
+  }
+  return total;
+}
+
+async function purgeWorkshop(code) {
+  if (!confirm(`Effacer définitivement toutes les données des participants de "${code}" ?\n\nProfils, rencontres, groupes et engagements seront supprimés. L'atelier lui-même est conservé (code, adresse, étapes).\n\nPensez à exporter ce dont vous avez besoin pour le plan de mobilité AVANT.`)) return;
+  try {
+    toast("Effacement en cours…", "success");
+    const n = await effacerDonnees(code);
+    toast(`${n} document${n > 1 ? 's' : ''} effacé${n > 1 ? 's' : ''} pour "${code}"`, "success");
+  } catch (err) {
+    toast("Erreur : " + err.message + " (vérifiez la règle d'effacement admin)", "error");
+  }
+}
+
+async function deleteWorkshop(code) {
+  if (!confirm(`Supprimer l'atelier "${code}" ET toutes les données de ses participants ?\n\nCette suppression est définitive. Exportez d'abord ce dont vous avez besoin.`)) return;
+  try {
+    toast("Suppression en cours…", "success");
+    const n = await effacerDonnees(code);          // d'abord les données (les règles exigent que l'atelier existe encore)
+    await deleteDoc(doc(db, "workshops", code));  // puis l'atelier
+    toast(`Atelier supprimé, avec ${n} document${n > 1 ? 's' : ''} de participants`, "success");
+    loadWorkshops();
+  } catch (err) {
+    toast("Erreur : " + err.message + " (rien n'a été supprimé côté atelier ; vérifiez la règle d'effacement admin)", "error");
+  }
+}
+
+// ==================== ADRESSE DE L'ENTREPRISE ====================
+// Géocodage IGN (Géoplateforme), secours OpenStreetMap. Les coordonnées sont calculées ici.
+async function geocoder(texte) {
+  const q = encodeURIComponent(texte);
+  try {
+    const r = await fetch(`https://data.geopf.fr/geocodage/search/?q=${q}&limit=5`);
+    if (r.ok) {
+      const d = await r.json();
+      const res = (d.features || []).map(f => ({ label: f.properties.label, lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] }));
+      if (res.length) return res;
+    }
+  } catch (e) { console.warn('IGN indisponible', e); }
+  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=fr&q=${q}`);
+  const d = r.ok ? await r.json() : [];
+  return d.map(x => ({ label: x.display_name, lat: parseFloat(x.lat), lon: parseFloat(x.lon) }));
+}
+
+async function localiser() {
+  const texte = document.getElementById('f-adresse').value.trim();
+  if (!texte) return toast("Saisissez l'adresse de l'entreprise", "error");
+  const res = await geocoder(texte);
+  const box = document.getElementById('adresse-choix');
+  if (!res.length) { box.classList.add('hidden'); return toast("Adresse introuvable : ajoutez la ville ou le code postal", "error"); }
+  if (res.length === 1) return retenir(res[0]);
+  box.innerHTML = '<p style="font-size:0.85rem;color:var(--text-dim)">Choisissez la bonne adresse :</p>' +
+    res.map((x, i) => `<button type="button" data-i="${i}">${x.label}</button>`).join('');
+  box.classList.remove('hidden');
+  box.querySelectorAll('button').forEach(b => b.onclick = () => { retenir(res[+b.dataset.i]); box.classList.add('hidden'); });
+}
+
+function retenir(lieu) {
+  document.getElementById('f-adresse').value = lieu.label;
+  document.getElementById('f-lat').value = lieu.lat;
+  document.getElementById('f-lon').value = lieu.lon;
+  afficherLieu({ companyAddress: lieu.label, companyLat: lieu.lat, companyLon: lieu.lon });
+}
+
+// Affiche le lieu retenu, avec un lien pour le vérifier sur une carte
+function afficherLieu(data) {
+  const lat = data.companyLat, lon = data.companyLon, el = document.getElementById('adresse-retenue');
+  document.getElementById('f-adresse').value = data.companyAddress || '';
+  document.getElementById('f-lat').value = Number.isFinite(lat) ? lat : '';
+  document.getElementById('f-lon').value = Number.isFinite(lon) ? lon : '';
+  if (Number.isFinite(lat) && Number.isFinite(lon) && (lat || lon)) {
+    el.innerHTML = `✓ ${data.companyAddress ? data.companyAddress + ' · ' : ''}${lat.toFixed(4)}, ${lon.toFixed(4)} · <a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}" target="_blank" rel="noopener">vérifier sur la carte</a>`;
+    el.classList.add('ok');
+  } else {
+    el.textContent = 'Aucune adresse localisée.';
+    el.classList.remove('ok');
+  }
+}
+
+async function duplicateWorkshop(code) {
+  try {
+    const d = await getDoc(doc(db, "workshops", code));
+    if (!d.exists()) return toast("Atelier introuvable", "error");
+    const data = d.data();
+
+    // Remplit le formulaire avec les données de l'atelier sélectionné
+    editingCode = null;
+    afficherLieu(data);
+    document.getElementById('f-code').value = ''; // Laisse le code vide
+    document.getElementById('f-expiration').value = data.expirationDate || '';
+    document.getElementById('f-capacity').value = data.capacity || 200;
+    document.getElementById('f-gas').value = data.lienAtelier || '';
+    document.getElementById('f-step3').checked = data.steps?.step3 ?? true;
+    document.getElementById('f-step4').checked = data.steps?.step4 ?? true;
+    document.getElementById('f-step5').checked = data.steps?.step5 ?? true;
+    document.getElementById('f-stepgroup').checked = data.steps?.stepgroup ?? true;
+    document.getElementById('f-step6').checked = data.steps?.step6 ?? true;
+
+    // Réinitialise le bouton et cache le bouton "Annuler"
+    document.getElementById('saveBtn').textContent = "💾 Créer l'atelier";
+    document.getElementById('cancelBtn').classList.add('hidden');
+
+    // Scroll vers le formulaire
+    document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+
+    // Affiche un message pour indiquer que les données sont chargées
+    toast(`Données de l'atelier "${code}" chargées. Complétez le code et le nom, puis cliquez sur "Créer l'atelier".`, "success");
+
+  } catch (err) {
+    toast("Erreur : " + err.message, "error");
+  }
+}
+
+function cancelEdit() {
+  editingCode = null;
+  document.getElementById('f-code').value = '';
+  document.getElementById('f-code').disabled = false;
+  document.getElementById('f-expiration').value = '';
+  document.getElementById('f-capacity').value = '200';
+  afficherLieu({});
+  document.getElementById('f-gas').value = '';
+  document.getElementById('f-step3').checked = true;
+  document.getElementById('f-step4').checked = true;
+  document.getElementById('f-step5').checked = true;
+  document.getElementById('f-stepgroup').checked = true;
+  document.getElementById('f-step6').checked = true;
+  document.getElementById('saveBtn').textContent = "💾 Créer l'atelier";
+  document.getElementById('cancelBtn').classList.add('hidden');
+}
+
+// ==================== UTILS ====================
+function toast(msg, type = "success") {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast toast-${type} show`;
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+</script>
+
+</body>
+</html>
