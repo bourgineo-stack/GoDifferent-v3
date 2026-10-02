@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>GoDifferent : tableau de bord animateur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;800&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/animateur.css">
+</head>
+<body>
+
+<!-- ===== Connexion et choix de l'atelier ===== -->
+<section id="accueil" class="accueil">
+  <img src="logo.webp" alt="GoDifferent" class="logo-grand" width="480" height="165">
+  <h1>Tableau de bord animateur</h1>
+  <p class="doux">À projeter pendant l'atelier. Les chiffres se mettent à jour en direct.</p>
+  <button id="btn-google" class="btn">Se connecter avec Google</button>
+  <div id="choix-atelier" hidden>
+    <label for="atelier">Atelier</label>
+    <select id="atelier"></select>
+    <button id="btn-ouvrir" class="btn">Ouvrir le tableau de bord</button>
+  </div>
+  <button id="btn-demo" class="btn-lien">Voir une démonstration avec des participants simulés</button>
+  <p id="accueil-erreur" class="erreur" hidden></p>
+</section>
+
+<!-- ===== Tableau de bord ===== -->
+<main id="tableau" class="tableau" hidden>
+  <header class="barre-haut">
+    <img src="logo.webp" alt="GoDifferent" class="logo" width="480" height="165">
+    <div class="titre-atelier"><span id="code-atelier"></span><span class="direct"><i></i>en direct</span></div>
+    <div class="actions">
+      <span id="horloge" class="horloge"></span>
+      <button id="btn-plein" class="btn-petit">Plein écran</button>
+    </div>
+  </header>
+
+  <section class="kpis">
+    <div class="kpi"><p class="kpi-nom">Inscrits</p><p class="kpi-val"><span id="k-inscrits">0</span><small id="k-capacite"></small></p></div>
+    <div class="kpi"><p class="kpi-nom">Rencontres</p><p class="kpi-val" id="k-rencontres">0</p></div>
+    <div class="kpi"><p class="kpi-nom">Mini-défis</p><p class="kpi-val" id="k-defis">0</p></div>
+    <div class="kpi"><p class="kpi-nom">Groupes</p><p class="kpi-val" id="k-groupes">0</p></div>
+    <div class="kpi"><p class="kpi-nom">Engagements</p><p class="kpi-val" id="k-reponses">0</p></div>
+  </section>
+
+  <section class="panneau salle">
+    <div class="panneau-tete">
+      <h2>La salle</h2>
+      <div class="actions">
+        <span id="replay-heure" class="replay-heure" hidden></span>
+        <button id="btn-replay" class="btn-petit">Rejouer la matinée</button>
+      </div>
+    </div>
+    <svg id="carte" viewBox="0 0 1000 1000" role="img" aria-label="Position des participants par rapport au lieu de travail"></svg>
+    <ul id="legende" class="legende"></ul>
+  </section>
+
+  <section class="panneau mission">
+    <div class="panneau-tete"><h2>Mission de la séance</h2><p id="mission-score" class="score"></p></div>
+    <ol id="jalons" class="jalons"></ol>
+  </section>
+
+  <section class="panneau empreinte">
+    <div class="panneau-tete"><h2>Les trajets aujourd'hui</h2></div>
+    <div class="chiffres">
+      <div><p class="grand" id="e-co2">0</p><p class="doux">tonnes de CO2 par an</p></div>
+      <div><p class="grand" id="e-cout">0</p><p class="doux">euros par an en voiture</p></div>
+      <div><p class="grand" id="e-km">0</p><p class="doux">km parcourus par an</p></div>
+    </div>
+    <div id="modes" class="barre-modes"></div>
+    <p id="e-voiture" class="doux"></p>
+  </section>
+
+  <section class="panneau engagements">
+    <div class="panneau-tete"><h2>Ce que le groupe s'engage à changer</h2></div>
+    <div class="chiffres">
+      <div><p class="grand vert" id="g-co2">0</p><p class="doux">tonnes de CO2 évitées par an (espérées)</p></div>
+      <div><p class="grand vert" id="g-part">0 %</p><p class="doux">de l'empreinte actuelle</p></div>
+    </div>
+    <div class="deux">
+      <div><p class="etiquette">Alternatives choisies</p><ul id="g-alternatives" class="barres"></ul></div>
+      <div><p class="etiquette">Ce qui freine</p><ul id="g-freins" class="barres"></ul></div>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="js/animateur.js"></script>
+</body>
+</html>

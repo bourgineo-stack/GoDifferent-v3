@@ -1,0 +1,105 @@
+/* Tableau de bord animateur : pensé pour un vidéoprojecteur (16:9), lisible de loin. */
+:root {
+  --fond: #0E0C22; --surface: rgba(255, 255, 255, .055); --trait: rgba(255, 255, 255, .12);
+  --texte: #F6F4FF; --doux: #B7B2D9;
+  --bleu: #2BA8E0; --vert: #8CC63F; --orange: #F7931E; --violet: #8E6FD8;
+  --fil-0: var(--bleu); --fil-1: var(--vert); --fil-2: var(--orange); --fil-3: var(--violet);
+  --titre: 'Unbounded', 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+html { background: var(--fond); }
+body { font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif; color: var(--texte); min-height: 100vh; font-size: clamp(14px, 1.05vw, 20px); }
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; background:
+  radial-gradient(40% 40% at 0% 0%, rgba(43, 168, 224, .18), transparent 70%),
+  radial-gradient(40% 40% at 100% 0%, rgba(142, 111, 216, .2), transparent 70%),
+  radial-gradient(50% 40% at 50% 110%, rgba(247, 147, 30, .1), transparent 70%); }
+.doux { color: var(--doux); }
+.etiquette { font-size: .75em; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--doux); margin-bottom: .5em; }
+
+/* ----- Accueil ----- */
+.accueil { max-width: 460px; margin: 10vh auto; padding: 24px; text-align: center; display: grid; gap: 16px; }
+.logo-grand { width: 260px; height: auto; margin: 0 auto; }
+.accueil h1 { font-family: var(--titre); font-size: 1.6rem; }
+.accueil label { display: block; text-align: left; font-weight: 600; margin-bottom: 6px; }
+.accueil select { width: 100%; font: inherit; color: var(--texte); background: #1C1940; border: 1px solid var(--trait); border-radius: 12px; padding: 12px; }
+.btn { font: inherit; font-weight: 800; border: 0; border-radius: 16px; padding: 14px 20px; cursor: pointer; color: #1A1030; background: linear-gradient(135deg, #FFB347, #F7931E 45%, #F2611D); box-shadow: 0 10px 28px -8px rgba(247, 120, 30, .6); width: 100%; margin-top: 12px; }
+.btn-lien { background: none; border: 0; color: var(--bleu); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.erreur { color: #FF8A8A; }
+
+/* ----- Grille du tableau ----- */
+.tableau { display: grid; gap: 1.1em; padding: 1.1em 1.4em 1.4em; min-height: 100vh;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto auto auto 1fr;
+  grid-template-areas: "haut haut haut" "kpis kpis kpis" "salle mission mission" "salle empreinte engagements"; }
+.barre-haut { grid-area: haut; display: flex; align-items: center; gap: 1.5em; }
+.logo { height: 2.6em; width: auto; }
+.titre-atelier { font-family: var(--titre); font-size: 1.3em; display: flex; align-items: center; gap: .8em; }
+.direct { font-family: 'Atkinson Hyperlegible Next', sans-serif; font-size: .55em; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--vert); display: flex; align-items: center; gap: .4em; }
+.direct i { width: .7em; height: .7em; border-radius: 50%; background: var(--vert); animation: pouls 1.6s infinite; }
+@keyframes pouls { 50% { opacity: .3; } }
+.actions { margin-left: auto; display: flex; align-items: center; gap: 1em; }
+.horloge { font-family: var(--titre); font-size: 1.3em; font-variant-numeric: tabular-nums; }
+.btn-petit { font: inherit; font-weight: 700; color: var(--texte); background: var(--surface); border: 1px solid var(--trait); border-radius: 12px; padding: .5em 1em; cursor: pointer; }
+
+.kpis { grid-area: kpis; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1em; }
+.kpi { background: var(--surface); border: 1px solid var(--trait); border-radius: 18px; padding: .8em 1.1em; }
+.kpi-nom { color: var(--doux); font-weight: 600; }
+.kpi-val { font-family: var(--titre); font-weight: 800; font-size: 2.6em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.kpi-val small { font-size: .45em; color: var(--doux); }
+
+.panneau { background: var(--surface); border: 1px solid var(--trait); border-radius: 22px; padding: 1.1em 1.3em; min-width: 0; }
+.panneau-tete { display: flex; align-items: baseline; gap: 1em; margin-bottom: .8em; }
+.panneau h2 { font-family: var(--titre); font-weight: 600; font-size: 1.1em; }
+.salle { grid-area: salle; display: flex; flex-direction: column; }
+.mission { grid-area: mission; }
+.empreinte { grid-area: empreinte; }
+.engagements { grid-area: engagements; }
+
+/* ----- Carte salle ----- */
+#carte { width: 100%; flex: 1; min-height: 0; max-height: 72vh; }
+.anneau { fill: none; stroke: rgba(255, 255, 255, .16); stroke-width: 2; stroke-dasharray: 6 8; }
+.anneau-txt { fill: var(--doux); font: 600 20px 'Atkinson Hyperlegible Next', sans-serif; }
+.travail { fill: var(--violet); filter: drop-shadow(0 0 18px rgba(142, 111, 216, .8)); }
+.travail-txt { fill: #fff; font: 800 15px 'Atkinson Hyperlegible Next', sans-serif; text-anchor: middle; }
+.nord { fill: var(--doux); font: 800 26px var(--titre); text-anchor: middle; }
+.point { stroke: rgba(14, 12, 34, .9); stroke-width: 3; transition: cx .8s, cy .8s; }
+.point.nouveau { animation: apparition .6s ease-out; transform-box: fill-box; transform-origin: center; }
+.point.loin { stroke: #fff; stroke-dasharray: 3 3; }
+@keyframes apparition { from { transform: scale(3); opacity: 0; } }
+.fil { stroke-width: 3; stroke-linecap: round; opacity: .75; stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: tirer 1.6s ease-out forwards; }
+@keyframes tirer { to { stroke-dashoffset: 0; } }
+.replay-heure { font-family: var(--titre); font-size: 1.4em; color: var(--orange); font-variant-numeric: tabular-nums; }
+.legende { list-style: none; display: flex; flex-wrap: wrap; gap: .5em 1.2em; margin-top: .6em; color: var(--doux); font-weight: 600; }
+.legende i { display: inline-block; width: .9em; height: .9em; border-radius: 50%; margin-right: .4em; vertical-align: -.1em; }
+
+/* ----- Jalons ----- */
+.score { margin-left: auto; font-family: var(--titre); font-weight: 600; color: var(--doux); }
+.score.gagne { color: var(--vert); animation: pouls 1.2s 3; }
+.jalons { list-style: none; display: grid; grid-template-columns: repeat(5, 1fr); gap: .8em; position: relative; }
+.jalons li { display: grid; gap: .5em; align-content: start; }
+.puce { width: 2.2em; height: 2.2em; border-radius: 50%; display: grid; place-items: center; font-weight: 800; border: 3px solid rgba(255, 255, 255, .2); color: var(--doux); }
+.atteint .puce { background: var(--c); border-color: var(--c); color: #0E0C22; box-shadow: 0 0 18px var(--c); }
+.jalon-nom { font-weight: 800; line-height: 1.2; }
+.jalons .doux { font-size: .85em; }
+.jauge { display: block; height: .45em; border-radius: 1em; background: rgba(255, 255, 255, .08); overflow: hidden; margin-top: .4em; }
+.jauge b { display: block; height: 100%; background: var(--c); border-radius: 1em; transition: width .8s; }
+
+/* ----- Chiffres ----- */
+.chiffres { display: flex; gap: 1.6em; flex-wrap: wrap; margin-bottom: 1em; }
+.grand { font-family: var(--titre); font-weight: 800; font-size: 2.2em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.grand.vert { color: var(--vert); }
+.barre-modes { display: flex; height: 2.4em; border-radius: 12px; overflow: hidden; margin-bottom: .6em; }
+.barre-modes span { display: flex; align-items: center; justify-content: center; color: #0E0C22; font-weight: 800; font-size: .8em; white-space: nowrap; overflow: hidden; transition: flex .8s; }
+.deux { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; }
+.barres { list-style: none; display: grid; gap: .45em; }
+.barres li { display: grid; grid-template-columns: 1fr auto; gap: .2em .6em; align-items: center; font-size: .9em; }
+.barres b { grid-column: 1; height: .5em; border-radius: 1em; background: linear-gradient(90deg, var(--bleu), var(--vert)); width: calc(var(--p) * 100%); transition: width .8s; }
+.barres em { grid-row: 1 / span 2; grid-column: 2; font-style: normal; font-weight: 800; font-family: var(--titre); }
+.barres .vide { color: var(--doux); display: block; }
+
+@media (max-width: 1100px) {
+  .tableau { grid-template-columns: 1fr; grid-template-areas: "haut" "kpis" "salle" "mission" "empreinte" "engagements"; }
+  .jalons, .kpis { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

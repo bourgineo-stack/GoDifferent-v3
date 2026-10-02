@@ -1,7 +1,7 @@
 // Étape 2 : Rencontres. On scanne ses collègues pour découvrir la distance entre domiciles.
 import { store } from '../store.js';
 import { onEnter, next } from '../router.js';
-import { startScan, stopScan, isScanning, cameraError } from '../scanner.js';
+import { startScan, setScanInfo, cameraError } from '../scanner.js';
 import { myPayload, renderQR, parsePayload } from '../qr.js';
 import { addContact, isNear, pairDefi, flushScans } from '../rencontres.js';
 import { fmtKm } from '../calc.js';
@@ -13,7 +13,6 @@ export function init() {
   $('#btn-scan2').addEventListener('click', toggleScan);
   $('#btn-suivant2').addEventListener('click', leave);
   $('#defi-ok').addEventListener('click', () => { $('#defi').hidden = true; });
-  document.addEventListener('scan-stop', () => { $('#btn-scan2').textContent = 'Scanner un collègue'; });
   document.addEventListener('rencontre', onRencontre);
 }
 
@@ -21,17 +20,17 @@ const onScreen = () => store.get().screen === 'step2';
 
 function enter() {
   const p = store.get().profile;
-  renderQR($('#qr2'), myPayload(p), 210);
+  renderQR($('#qr2'), myPayload(p), 180, p.pseudo);
   $('#pseudo2').textContent = p.pseudo;
   render();
 }
 
+const infoRencontres = () => { const n = store.get().contacts.length; return `${n} rencontre${n > 1 ? 's' : ''}`; };
+
 async function toggleScan() {
-  if (isScanning()) return stopScan();
   try {
     $('#defi').hidden = true;
-    await startScan($('#cam2'), onCode);
-    $('#btn-scan2').textContent = 'Arrêter le scan';
+    await startScan(onCode, { titre: 'Scannez le code d\'un collègue', info: infoRencontres() });
   } catch (e) { toast(cameraError(e), 'error'); }
 }
 
@@ -49,6 +48,7 @@ function onRencontre(e) {
   if (!onScreen()) return;
   const { contact: c, recu } = e.detail;
   render();
+  setScanInfo(infoRencontres());
   toast(recu
     ? `${c.pseudo} vous a scanné : ${fmtKm(c.distance)} entre vos domiciles`
     : `${c.pseudo} habite à ${fmtKm(c.distance)} de chez vous`);

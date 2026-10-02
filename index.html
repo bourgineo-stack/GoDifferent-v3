@@ -7,13 +7,18 @@
   <title>GoDifferent : atelier mobilité</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;800&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
   <!-- QR : génération (qrcodejs) et lecture (jsQR) -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M7 12h10"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 17v4"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+</svg>
 
 <header class="entete">
   <img src="logo.webp" alt="GoDifferent" class="logo" width="480" height="165">
@@ -116,7 +121,7 @@
       <p id="pseudo" class="pseudo"></p>
       <p class="aide">Départ : <span id="adresse-retenue"></span></p>
     </div>
-    <button type="button" id="btn-inviter" class="btn btn-second">Inviter un collègue</button>
+    <button type="button" id="btn-inviter" class="btn btn-second"><svg class="ico" aria-hidden="true"><use href="#i-qr"/></svg>Inviter un collègue</button>
     <div class="nav-etapes">
       <button type="button" class="btn-retour" data-action="goto" data-target="step1-profil">Modifier le profil</button>
       <button type="button" class="btn" data-action="next">Commencer</button>
@@ -140,11 +145,10 @@
 
     <div class="carte centre">
       <div id="qr2" class="qr"></div>
-      <p class="aide">Code de <strong id="pseudo2"></strong></p>
+      <p class="aide">Code de <strong id="pseudo2"></strong>. Touchez-le pour l'afficher en grand.</p>
     </div>
 
-    <div id="cam2" class="camera" hidden></div>
-    <button type="button" id="btn-scan2" class="btn">Scanner un collègue</button>
+    <button type="button" id="btn-scan2" class="btn"><svg class="ico" aria-hidden="true"><use href="#i-scan"/></svg>Scanner un collègue</button>
 
     <div id="defi" class="defi" role="status" hidden>
       <p id="defi-titre" class="defi-titre"></p>
@@ -191,8 +195,7 @@
     <ul id="cibles" class="contacts"></ul>
     <p id="resultat3" class="resultat" hidden></p>
 
-    <div id="cam3" class="camera" hidden></div>
-    <button type="button" id="btn-scan3" class="btn">Scanner un voisin</button>
+    <button type="button" id="btn-scan3" class="btn"><svg class="ico" aria-hidden="true"><use href="#i-scan"/></svg>Scanner un voisin</button>
     <button type="button" id="btn-maj3" class="btn btn-second">Actualiser mes contacts</button>
 
     <div class="nav-etapes">
@@ -263,8 +266,7 @@
       <div id="qr4" class="qr qr-petit" title="Votre code, pour que les autres vous scannent"></div>
     </div>
     <div id="verdict4" class="verdict" role="status" hidden></div>
-    <div id="cam4" class="camera" hidden></div>
-    <button type="button" id="btn-scan4" class="btn">Vérifier ma place</button>
+    <button type="button" id="btn-scan4" class="btn"><svg class="ico" aria-hidden="true"><use href="#i-scan"/></svg>Vérifier ma place</button>
 
     <div class="nav-etapes">
       <button type="button" class="btn-retour" data-action="prev">Retour</button>
@@ -327,8 +329,7 @@
   <section data-screen="groupe-scan" data-step="stepgroup" hidden>
     <h1>Scannez votre groupe</h1>
     <p class="chapo">Scannez le code de chaque membre, maître du temps compris.</p>
-    <div id="cam-groupe" class="camera" hidden></div>
-    <button type="button" id="btn-scan-groupe" class="btn">Scanner un membre</button>
+    <button type="button" id="btn-scan-groupe" class="btn"><svg class="ico" aria-hidden="true"><use href="#i-scan"/></svg>Scanner les membres</button>
     <h2 class="intertitre">Membres</h2>
     <ul id="liste-membres" class="contacts"></ul>
     <button type="button" id="btn-valider-groupe" class="btn" disabled>Valider le groupe</button>
@@ -465,7 +466,7 @@
   <section data-screen="bilan" data-step="step6" hidden>
     <h1>Votre bilan</h1>
     <div id="bilan-contenu"></div>
-    <button type="button" id="btn-pdf" class="btn">Télécharger mon bilan PDF</button>
+    <button type="button" id="btn-pdf" class="btn"><svg class="ico" aria-hidden="true"><use href="#i-dl"/></svg>Télécharger mon bilan PDF</button>
     <p class="aide centre">Le PDF reprend ce bilan et les résultats de votre groupe.</p>
     <div class="nav-etapes"><button type="button" class="btn-retour" data-action="goto" data-target="step6">Modifier mes réponses</button></div>
     <p class="merci">Merci pour votre participation ! Un rapport de synthèse anonyme sera remis à votre entreprise.</p>
@@ -510,6 +511,24 @@
   <div id="qr-invite" class="qr"></div>
   <button type="button" class="btn" data-close>Fermer</button>
 </dialog>
+
+<!-- Scanner plein écran (commun à toutes les étapes) -->
+<div id="scanner" class="scanner" hidden>
+  <div id="scanner-video" class="scanner-video"></div>
+  <div class="scanner-viseur" aria-hidden="true"><span></span></div>
+  <div class="scanner-haut">
+    <p id="scanner-titre" class="scanner-titre"></p>
+    <p id="scanner-info" class="scanner-info"></p>
+  </div>
+  <div class="scanner-bas"><button type="button" id="scanner-fermer" class="btn">Terminé</button></div>
+</div>
+
+<!-- Mon QR code en grand, pour être scanné facilement -->
+<div id="qr-plein" class="qr-plein" hidden>
+  <div id="qr-plein-code"></div>
+  <p id="qr-plein-nom" class="qr-plein-nom"></p>
+  <button type="button" id="qr-plein-fermer" class="btn btn-second">Fermer</button>
+</div>
 
 <div id="toasts" class="toasts" aria-live="polite"></div>
 

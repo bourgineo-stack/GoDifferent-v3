@@ -13,7 +13,7 @@ const app = initializeApp({
 });
 
 export const db = getFirestore(app);
-const auth = getAuth(app);
+export const auth = getAuth(app); // exporté pour le tableau de bord animateur (connexion Google)
 
 // Garantit une session anonyme AVANT toute lecture/écriture (corrige la course de la v2).
 let authPromise = null;

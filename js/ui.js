@@ -17,9 +17,9 @@ export function toast(msg, type = 'ok') {
 
 // Désactive un bouton pendant une action asynchrone
 export async function busy(btn, label, fn) {
-  const old = btn.textContent;
+  const old = btn.innerHTML; // innerHTML : garde l'icône éventuelle
   btn.disabled = true;
   btn.textContent = label;
   try { return await fn(); }
-  finally { btn.disabled = false; btn.textContent = old; }
+  finally { btn.disabled = false; btn.innerHTML = old; }
 }

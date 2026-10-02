@@ -1,25 +1,35 @@
-// Scanner QR unique pour toute l'application (remplace les 4 variantes de la v2).
-// onResult(texte) : renvoyer false pour arrêter le scan, sinon il continue.
+// Scanner QR unique, en plein écran (la caméra n'est plus jamais tronquée par le reste de la page).
+// startScan(onResult, { titre, info }) : onResult(texte) renvoie false pour fermer le scanner.
+// setScanInfo(texte) met à jour la ligne d'information (compteur, score...).
 
 let active = null;
+const el = id => document.getElementById(id);
 
 export const isScanning = () => !!active;
 
-export async function startScan(container, onResult, { cooldown = 4000 } = {}) {
+export function setScanInfo(texte) {
+  if (active) el('scanner-info').textContent = texte || '';
+}
+
+export async function startScan(onResult, { titre = 'Scannez un QR code', info = '', cooldown = 4000 } = {}) {
   stopScan();
   const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
   const video = document.createElement('video');
   video.setAttribute('playsinline', '');
   video.muted = true;
   video.srcObject = stream;
-  container.innerHTML = '';
-  container.appendChild(video);
-  container.hidden = false;
+  const zone = el('scanner-video');
+  zone.innerHTML = '';
+  zone.appendChild(video);
+  el('scanner-titre').textContent = titre;
+  el('scanner-info').textContent = info;
+  el('scanner').hidden = false;
+  document.body.classList.add('scan-ouvert');
   await video.play();
 
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  const state = { stream, container, running: true };
+  const state = { stream, running: true };
   active = state;
   let lastFrame = 0, lastText = '', lastTime = 0;
 
@@ -34,11 +44,11 @@ export async function startScan(container, onResult, { cooldown = 4000 } = {}) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const code = window.jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-      // Même code relu dans la foulée : ignoré
       if (code?.data && !(code.data === lastText && t - lastTime < cooldown)) {
         lastText = code.data;
         lastTime = t;
         navigator.vibrate?.(60);
+        el('scanner').classList.remove('flash'); void el('scanner').offsetWidth; el('scanner').classList.add('flash');
         if (onResult(code.data) === false) return stopScan();
       }
     }
@@ -51,8 +61,9 @@ export function stopScan() {
   if (!active) return;
   active.running = false;
   active.stream.getTracks().forEach(t => t.stop());
-  active.container.innerHTML = '';
-  active.container.hidden = true;
+  el('scanner-video').innerHTML = '';
+  el('scanner').hidden = true;
+  document.body.classList.remove('scan-ouvert');
   active = null;
   document.dispatchEvent(new Event('scan-stop'));
 }
@@ -63,6 +74,7 @@ export function cameraError(e) {
   return "Impossible d'ouvrir la caméra. Fermez les autres applications qui l'utilisent, puis réessayez.";
 }
 
-// Caméra coupée au changement d'écran et quand le téléphone se verrouille
+// Bouton « Terminé », changement d'écran, téléphone verrouillé : on coupe la caméra
+document.addEventListener('click', e => { if (e.target.closest('#scanner-fermer')) stopScan(); });
 document.addEventListener('ecran', stopScan);
 document.addEventListener('visibilitychange', () => { if (document.hidden) stopScan(); });

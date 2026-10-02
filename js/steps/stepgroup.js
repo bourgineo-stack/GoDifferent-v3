@@ -4,7 +4,7 @@
 import { store } from '../store.js';
 import { show, onEnter } from '../router.js';
 import { saveGroup, watchMyGroup } from '../db.js';
-import { startScan, stopScan, isScanning, cameraError } from '../scanner.js';
+import { startScan, stopScan, setScanInfo, cameraError } from '../scanner.js';
 import { myPayload, renderQR, parsePayload } from '../qr.js';
 import { roadKm } from '../calc.js';
 import { $, esc, toast, busy } from '../ui.js';
@@ -40,7 +40,6 @@ export function init() {
   $('#btn-phase-suiv').addEventListener('click', () => movePhase(+1));
   $('#btn-fin-groupe').addEventListener('click', finish);
   $('#btn-attente-suite').addEventListener('click', () => show(g().role === 'timer' ? 'groupe-chrono' : 'groupe-suivi'));
-  document.addEventListener('scan-stop', () => { $('#btn-scan-groupe').textContent = 'Scanner un membre'; });
 
   onEnter('groupe-attente', enterWaiting);
   onEnter('groupe-scan', renderMembers);
@@ -65,7 +64,7 @@ function chooseRole(role) {
 function enterWaiting() {
   const role = g().role;
   $('#attente-role').textContent = role === 'timer' ? 'Vous êtes le maître du temps' : 'Vous êtes membre du groupe';
-  renderQR($('#qr-groupe'), myPayload(store.get().profile), 210);
+  renderQR($('#qr-groupe'), myPayload(store.get().profile), 200, store.get().profile.pseudo);
   if (g().doc) goToFollowView(); // déjà ajouté : on passe directement à la suite
 }
 
@@ -97,12 +96,11 @@ function goToFollowView() {
 }
 
 // ---------- Scribe : formation du groupe ----------
+const infoGroupe = () => `${(g().membres || []).length + 1} personnes dans le groupe, vous compris`;
+
 async function toggleScan() {
-  if (isScanning()) return stopScan();
-  try {
-    await startScan($('#cam-groupe'), onMemberCode);
-    $('#btn-scan-groupe').textContent = 'Arrêter le scan';
-  } catch (e) { toast(cameraError(e), 'error'); }
+  try { await startScan(onMemberCode, { titre: 'Scannez chaque membre du groupe', info: infoGroupe() }); }
+  catch (e) { toast(cameraError(e), 'error'); }
 }
 
 function onMemberCode(raw) {
@@ -114,6 +112,7 @@ function onMemberCode(raw) {
   setG({ membres: [...membres, d] });
   toast(`${d.pseudo} ajouté au groupe`);
   renderMembers();
+  setScanInfo(infoGroupe());
 }
 
 function renderMembers() {

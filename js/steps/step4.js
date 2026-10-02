@@ -2,7 +2,7 @@
 // Aucune lecture ni écriture Firestore : tout est calculé sur le téléphone.
 import { store } from '../store.js';
 import { onEnter } from '../router.js';
-import { startScan, stopScan, isScanning, cameraError } from '../scanner.js';
+import { startScan, cameraError } from '../scanner.js';
 import { myPayload, renderQR } from '../qr.js';
 import { roadKm, fmtKm, bearing, direction, vers } from '../calc.js';
 import { $, esc, toast } from '../ui.js';
@@ -11,12 +11,11 @@ import { CONFIG } from '../config.js';
 export function init() {
   onEnter('step4', enter);
   $('#btn-scan4').addEventListener('click', toggleScan);
-  document.addEventListener('scan-stop', () => { $('#btn-scan4').textContent = 'Vérifier ma place'; });
 }
 
 function enter() {
   const { profile, workshop } = store.get();
-  renderQR($('#qr4'), myPayload(profile), 150);
+  renderQR($('#qr4'), myPayload(profile), 130, profile.pseudo);
   $('#verdict4').hidden = true;
 
   // Boussole : où se trouve mon domicile par rapport au travail
@@ -30,11 +29,8 @@ function enter() {
 }
 
 async function toggleScan() {
-  if (isScanning()) return stopScan();
-  try {
-    await startScan($('#cam4'), onCode);
-    $('#btn-scan4').textContent = 'Arrêter le scan';
-  } catch (e) { toast(cameraError(e), 'error'); }
+  try { await startScan(onCode, { titre: 'Scannez un voisin de salle ou un repère' }); }
+  catch (e) { toast(cameraError(e), 'error'); }
 }
 
 // QR d'un participant ou d'un repère fixe : seules lat et lon sont indispensables

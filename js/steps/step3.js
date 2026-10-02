@@ -2,7 +2,7 @@
 import { store } from '../store.js';
 import { onEnter, show } from '../router.js';
 import { fetchReciprocal } from '../db.js';
-import { startScan, stopScan, isScanning, cameraError } from '../scanner.js';
+import { startScan, setScanInfo, cameraError } from '../scanner.js';
 import { myPayload, renderQR, parsePayload } from '../qr.js';
 import { roadKm, fmtKm } from '../calc.js';
 import { addContact } from '../rencontres.js';
@@ -15,7 +15,6 @@ export function init() {
   $('#btn-start3').addEventListener('click', start);
   $('#btn-scan3').addEventListener('click', toggleScan);
   $('#btn-maj3').addEventListener('click', e => busy(e.currentTarget, 'Actualisation…', refresh));
-  document.addEventListener('scan-stop', () => { $('#btn-scan3').textContent = 'Scanner un voisin'; });
 }
 
 const goal = g => Math.min(3, g.targets.length);
@@ -27,7 +26,7 @@ async function start(e) {
 }
 
 function enterGame() {
-  renderQR($('#qr3'), myPayload(store.get().profile), 150);
+  renderQR($('#qr3'), myPayload(store.get().profile), 130, store.get().profile.pseudo);
   if (!store.get().game) buildTargets();
   render();
 }
@@ -64,12 +63,11 @@ async function refresh() {
   render();
 }
 
+const infoJeu = () => { const g = store.get().game; return `${g.found.length} sur ${goal(g)} trouvés, ${g.attempts} essais restants`; };
+
 async function toggleScan() {
-  if (isScanning()) return stopScan();
-  try {
-    await startScan($('#cam3'), onCode);
-    $('#btn-scan3').textContent = 'Arrêter le scan';
-  } catch (e) { toast(cameraError(e), 'error'); }
+  try { await startScan(onCode, { titre: 'Scannez un de vos voisins', info: infoJeu() }); }
+  catch (e) { toast(cameraError(e), 'error'); }
 }
 
 function onCode(raw) {
@@ -89,6 +87,7 @@ function onCode(raw) {
   }
   store.set({ game });
   render();
+  setScanInfo(infoJeu());
   if (finished(game)) return false;
 }
 
