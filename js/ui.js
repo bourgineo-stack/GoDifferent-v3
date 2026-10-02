@@ -23,3 +23,14 @@ export async function busy(btn, label, fn) {
   try { return await fn(); }
   finally { btn.disabled = false; btn.innerHTML = old; }
 }
+
+// Empêche l'écran de se mettre en veille (chrono, discussion) : une veille coupe la synchronisation
+let verrou = null;
+export async function ecranAllume(on) {
+  try {
+    if (on && !verrou && 'wakeLock' in navigator) {
+      verrou = await navigator.wakeLock.request('screen');
+      verrou.addEventListener('release', () => { verrou = null; });
+    } else if (!on && verrou) { await verrou.release(); verrou = null; }
+  } catch { /* navigateur sans prise en charge : sans conséquence */ }
+}

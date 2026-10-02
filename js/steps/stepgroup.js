@@ -7,9 +7,9 @@ import { saveGroup, watchMyGroup } from '../db.js';
 import { startScan, stopScan, setScanInfo, cameraError } from '../scanner.js';
 import { myPayload, renderQR, parsePayload } from '../qr.js';
 import { roadKm } from '../calc.js';
-import { $, esc, toast, busy } from '../ui.js';
+import { $, esc, toast, busy, ecranAllume } from '../ui.js';
 import { CONFIG } from '../config.js';
-import { THEMES, PHASES, CONTENU, CONSIGNES_SCRIBE, RESSOURCES_COMMUNES, CERCLES } from '../contenu.js';
+import { THEMES, PHASES, CONTENU, CONSIGNES_SCRIBE, RESSOURCES_COMMUNES } from '../contenu.js';
 
 const THEME_SEC = CONFIG.THEME_DURATION_SECONDS;
 const id12 = () => store.get().profile.id.slice(0, 12);
@@ -48,10 +48,12 @@ export function init() {
   onEnter('groupe-synthese', renderSynthese);
   onEnter('groupe-chrono', renderChrono);
   onEnter('groupe-suivi', renderSuivi);
-  onEnter('groupe-cercles', renderCercles);
 
   // Chrono coupé hors des écrans qui l'affichent ; écoute du groupe active pendant la co-construction et les engagements
-  document.addEventListener('ecran', () => { clearInterval(tick); tick = null; });
+  document.addEventListener('ecran', () => { clearInterval(tick); tick = null; ecranAllume(false); });
+  ['groupe-attente', 'groupe-discussion', 'groupe-chrono', 'groupe-suivi'].forEach(ecr => {
+    document.addEventListener('ecran-affiche', () => { if (store.get().screen === ecr) ecranAllume(true); });
+  });
   document.addEventListener('ecran-affiche', e => toggleWatch(['stepgroup', 'step6'].includes(e.detail.step)));
 }
 
@@ -82,9 +84,9 @@ async function toggleWatch(on) {
         const screen = store.get().screen;
         if (wasNew && screen === 'groupe-attente') { toast(`Vous avez rejoint le groupe de ${doc.scribePseudo || 'votre scribe'}.`); goToFollowView(); }
         else if (doc.statut === 'termine' && ['groupe-chrono', 'groupe-suivi', 'groupe-attente'].includes(screen)) {
-          // Le scribe a terminé : tout le groupe passe aux cercles en même temps que lui
+          // Le scribe a terminé : tout le groupe passe aux 5 dernières minutes en même temps que lui
           navigator.vibrate?.([120, 80, 120]);
-          toast('Discussion terminée : rejoignez votre cercle.');
+          toast('Discussion terminée : encore 5 minutes pour échanger.');
           show('groupe-cercles');
         }
         else if (screen === 'groupe-chrono') renderChrono();
@@ -373,9 +375,4 @@ function renderSuivi() {
   const res = dist ? THEMES[dist].map(t => ({ nom: t.nom, url: t.ressource })) : [];
   $('#suivi-ressources').innerHTML = [...res, ...RESSOURCES_COMMUNES]
     .map(r => `<li><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.nom)}</a></li>`).join('');
-}
-
-// ---------- Cercles ----------
-function renderCercles() {
-  $('#liste-cercles').innerHTML = CERCLES.map(c => `<li><span class="pastille" style="background:${c.couleur}"></span>${esc(c.nom)}</li>`).join('');
 }

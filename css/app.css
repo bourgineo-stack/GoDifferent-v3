@@ -296,8 +296,6 @@ input[type="time"] { color-scheme: dark; }
 .barre span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--bleu), var(--vert)); transition: width 1s linear; }
 .liens { list-style: none; display: grid; gap: 8px; }
 .liens a { display: block; padding: 14px 16px; background: var(--surface); border: 1px solid var(--trait); border-radius: var(--r-champ); font-weight: 600; text-decoration: none; }
-.cercles { grid-template-columns: 1fr 1fr; }
-.cercles .pastille { width: 34px; height: 34px; }
 
 /* ===== Engagements et bilan ===== */
 #form-engagements h2 { font-size: 1rem; }

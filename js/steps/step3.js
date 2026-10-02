@@ -1,7 +1,7 @@
 // Étape 3 : retrouver dans la salle 3 de ses 5 voisins géographiques.
 import { store } from '../store.js';
 import { onEnter, show } from '../router.js';
-import { fetchReciprocal } from '../db.js';
+import { fetchReciprocal, saveRetrouvaille, watchRetrouvailles } from '../db.js';
 import { startScan, setScanInfo, cameraError } from '../scanner.js';
 import { myPayload, renderQR, parsePayload } from '../qr.js';
 import { roadKm, fmtKm } from '../calc.js';
@@ -14,7 +14,8 @@ export function init() {
   onEnter('step3-jeu', enterGame);
   $('#btn-start3').addEventListener('click', start);
   $('#btn-scan3').addEventListener('click', toggleScan);
-  $('#btn-maj3').addEventListener('click', e => busy(e.currentTarget, 'Actualisation…', refresh));
+  // Écoute des « il vous a retrouvé » pendant le jeu uniquement
+  document.addEventListener('ecran-affiche', () => toggleWatch(store.get().screen === 'step3-jeu'));
 }
 
 const goal = g => Math.min(3, g.targets.length);
@@ -57,12 +58,6 @@ function buildTargets() {
   } });
 }
 
-async function refresh() {
-  await loadReciprocal();
-  buildTargets();
-  render();
-}
-
 const infoJeu = () => { const g = store.get().game; return `${g.found.length} sur ${goal(g)} trouvés, ${g.attempts} essais restants`; };
 
 async function toggleScan() {
@@ -81,6 +76,8 @@ function onCode(raw) {
   if (game.targets.includes(d.id)) {
     game.found.push(d.id);
     toast(`Trouvé : ${d.pseudo} !`);
+    // Prévient l'autre : s'il me cherchait aussi, je compte pour lui sans qu'il me scanne
+    saveRetrouvaille(store.get().code, profile, d.id).catch(e => console.warn('Retrouvaille pas encore envoyée', e));
   } else {
     game.attempts--;
     toast(`${d.pseudo} habite à ${fmtKm(roadKm(profile, d))} : pas dans vos 5 voisins.`, 'error');
@@ -111,4 +108,25 @@ function render() {
   else res.hidden = true;
 
   $('#btn-scan3').hidden = finished(game) || !game.targets.length;
+}
+
+// ---------- Réciprocité : on m'a retrouvé ----------
+let unsub = null;
+async function toggleWatch(on) {
+  if (on && !unsub) {
+    unsub = 'en cours';
+    try {
+      unsub = await watchRetrouvailles(store.get().code, store.get().profile.id.slice(0, 12), list => list.forEach(r => {
+        const { game, contacts } = store.get();
+        if (!game || finished(game) || !game.targets.includes(r.fromId12) || game.found.includes(r.fromId12)) return;
+        game.found.push(r.fromId12);
+        store.set({ game });
+        const c = contacts.find(x => x.id === r.fromId12);
+        toast(`${c?.pseudo || r.fromPseudo} vous a retrouvé : compté pour vous aussi !`);
+        navigator.vibrate?.(80);
+        render();
+        setScanInfo(infoJeu());
+      }));
+    } catch (err) { console.warn(err); unsub = null; }
+  } else if (!on && typeof unsub === 'function') { unsub(); unsub = null; }
 }

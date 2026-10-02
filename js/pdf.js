@@ -18,6 +18,7 @@ const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 
 // Nombres « 6 802,7 » : jsPDF ne sait pas dessiner l'espace fine insécable du français (elle sortait en « / »)
 const nb = (x, d = 0) => x.toLocaleString('fr-FR', { maximumFractionDigits: d }).replace(/[\u202f\u00a0]/g, ' ');
+const moins = x => (Math.round(x) > 0 ? `-${nb(x)}` : '0'); // pas de « -0 »
 
 function loadJsPdf() {
   if (window.jspdf) return Promise.resolve();
@@ -117,19 +118,17 @@ export async function telechargerBilan({ reponse, profile, contacts, groupe }) {
   // ===================== PAGE 1 =====================
   entete('Mon bilan mobilité', `${profile.pseudo}  ·  ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`);
   const pas = d.engagement === 'pas_maintenant' || d.alternative_1 === 'aucun';
-  const sansDistance = !d.distance_km;
 
   // ---- Chiffre principal ----
   carte(L, y, W, 35, pas ? C.fondDoux : C.vertClair, 6);
   font(10, true); ink(pas ? C.doux : C.vert);
   txt(pas ? 'VOS ÉMISSIONS ACTUELLES' : 'VOTRE RÉDUCTION ESPÉRÉE', L + 10, y + 9);
   font(34, true); ink(pas ? C.encre : C.vert);
-  txt(`${pas ? '' : '-'}${nb(pas ? d.emissions_actuelles_kg : d.gain_espere_kg)}`, L + 10, y + 24);
-  const largeur = doc.getTextWidth(`${pas ? '' : '-'}${nb(pas ? d.emissions_actuelles_kg : d.gain_espere_kg)}`);
+  txt(pas ? nb(d.emissions_actuelles_kg) : moins(d.gain_espere_kg), L + 10, y + 24);
+  const largeur = doc.getTextWidth(pas ? nb(d.emissions_actuelles_kg) : moins(d.gain_espere_kg));
   font(13, true); txt('kg CO2 / an', L + 13 + largeur, y + 24);
   font(9); ink(C.doux);
-  txt(sansDistance ? "Distance non calculée : l'adresse de l'entreprise manquait dans l'atelier."
-    : pas ? "Pas de changement prévu pour l'instant : chaque trajet comptera, le jour venu."
+  txt(pas ? "Pas de changement prévu pour l'instant : chaque trajet comptera, le jour venu."
     : `Soit l'équivalent de ${nb(d.gain_espere_kg / facteurKm('car-thermal'))} km parcourus en voiture thermique.`, L + 10, y + 30.5);
   y += 40;
 
@@ -142,7 +141,7 @@ export async function telechargerBilan({ reponse, profile, contacts, groupe }) {
         carte(x, y, w, 18, fort ? c : C.fondDoux, 4);
         if (!fort) { fill(c); doc.rect(x, y + 3, 1.6, 12, 'F'); }
         font(7.5, true); ink(fort ? C.blanc : C.doux); txt(l, x + w / 2, y + 7, { align: 'center' });
-        font(15, true); ink(fort ? C.blanc : C.encre); txt(`-${nb(v)} kg`, x + w / 2, y + 14.5, { align: 'center' });
+        font(15, true); ink(fort ? C.blanc : C.encre); txt(`${moins(v)} kg`, x + w / 2, y + 14.5, { align: 'center' });
       });
     y += 23;
     if (d.economie_max_euros > 0) {
@@ -164,7 +163,7 @@ export async function telechargerBilan({ reponse, profile, contacts, groupe }) {
   fill(C.blanc); draw(coul); doc.setLineWidth(1.2); doc.circle(x1, y + 10, 4, 'FD');
   fill(C.violet); doc.circle(x2, y + 10, 4, 'F');
   font(7, true); ink(C.doux); txt('DOMICILE', x1, y + 19, { align: 'center' }); txt('TRAVAIL', x2, y + 19, { align: 'center' });
-  font(11, true); ink(C.encre); txt(sansDistance ? 'distance inconnue' : `${nb(d.distance_km, 1)} km`, (x1 + x2) / 2, y + 7, { align: 'center' });
+  font(11, true); ink(C.encre); txt(`${nb(d.distance_km, 1)} km`, (x1 + x2) / 2, y + 7, { align: 'center' });
   font(9); ink(C.doux);
   txt(d.transport_secondaire ? `${mode} ${d.mode1_days} j + ${MODES[d.transport_secondaire]} ${d.mode2_days} j` : mode, (x1 + x2) / 2, y + 16, { align: 'center' });
   // Indicateurs à droite
@@ -178,12 +177,12 @@ export async function telechargerBilan({ reponse, profile, contacts, groupe }) {
   carte(L, y, W, 16, C.fondDoux, 4); fill(C.orange); doc.rect(L, y + 3, 1.6, 10, 'F');
   font(7.5, true); ink(C.doux); txt('PREMIER CHOIX', L + 6, y + 6);
   font(12, true); ink(C.encre); txt(ALTERNATIVES[d.alternative_1] || '', L + 6, y + 12.5);
-  if (d.alternative_1 !== 'aucun') { font(11, true); ink(C.vert); txt(`-${nb(d.gain_max_kg)} kg si 100 % des trajets`, L + W - 6, y + 10, { align: 'right' }); }
+  if (d.alternative_1 !== 'aucun') { font(11, true); ink(C.vert); txt(`${moins(d.gain_max_kg)} kg si 100 % des trajets`, L + W - 6, y + 10, { align: 'right' }); }
   y += 20;
   if (d.alternative_2) {
     place(10);
     font(10); ink(C.doux); txt(`Plan B : ${ALTERNATIVES[d.alternative_2]}`, L + 6, y + 4);
-    font(10, true); ink(C.encre); txt(`-${nb(reponse.gain2)} kg si 100 %`, L + W - 6, y + 4, { align: 'right' });
+    font(10, true); ink(C.encre); txt(`${moins(reponse.gain2)} kg si 100 %`, L + W - 6, y + 4, { align: 'right' });
     y += 9;
   }
   // Engagement : jauge de la part des trajets visée
@@ -202,23 +201,30 @@ export async function telechargerBilan({ reponse, profile, contacts, groupe }) {
   const freins = [d.frein_1, d.frein_2].filter(Boolean).map(f => libelle(FREINS, f));
   const leviers = [d.levier_1, d.levier_2].filter(Boolean).map(l => libelle(LEVIERS, l));
   // Deux colonnes côte à côte : freins à gauche, leviers à droite
-  place(14 + 10 * Math.max(freins.length, leviers.length));
+  // Pastilles sur une ou deux lignes (les libellés longs ne sont plus coupés)
+  const hauteurs = items => items.map(t => { font(9.5, true); return doc.splitTextToSize(t, 78).slice(0, 2).length * 4.2 + 3.8; });
+  const total = items => hauteurs(items).reduce((a, h) => a + h + 2, 0);
+  place(12 + Math.max(total(freins), total(leviers)));
   const colonne = (x, nom, items, accent, fond, texte) => {
     fill(accent); doc.roundedRect(x, y, 3, 7, 1, 1, 'F');
     font(12, true); ink(C.encre); txt(nom, x + 6, y + 5.5);
+    let yy = y + 11;
     items.forEach((t, i) => {
-      const ln = doc.splitTextToSize(t, 78)[0];
-      carte(x, y + 11 + i * 10, 86, 8, fond, 4);
-      font(9.5, true); ink(texte); txt(ln, x + 4, y + 16.3 + i * 10);
+      font(9.5, true);
+      const ln = doc.splitTextToSize(t, 78).slice(0, 2), h = hauteurs([t])[0];
+      carte(x, yy, 86, h, fond, 3.5);
+      ink(texte); doc.text(ln, x + 4, yy + 5.2);
+      yy += h + 2;
     });
   };
   colonne(L, 'Ce qui vous freine', freins, C.orange, C.orangeClair, [150, 80, 0]);
   colonne(L + 92, 'Ce qui vous aiderait', leviers, C.vert, C.vertClair, [60, 110, 20]);
-  y += 14 + 10 * Math.max(freins.length, leviers.length);
+  y += 14 + Math.max(total(freins), total(leviers));
 
   // ---- Voisins ----
   const voisins = [...contacts].filter(c => c.distance < CONFIG.DISTANCE_THRESHOLD_KM).sort((a, b) => a.distance - b.distance).slice(0, 8);
   if (voisins.length) {
+    place(26); // le titre ne reste pas seul en bas de page
     titre('Vos voisins, pour covoiturer', C.bleu);
     pastilles(voisins.map(v => `${v.pseudo}  ${nb(v.distance, 1)} km`), [228, 243, 251], [20, 100, 140]);
   }

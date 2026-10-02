@@ -128,3 +128,21 @@ export async function saveResponse(code, id, data) {
   await ensureAuth();
   await withRetry(() => setDoc(doc(db, 'workshops', code, 'responses', id), data));
 }
+
+// workshops/{CODE}/retrouvailles/{de}_{vers} : A a retrouvé B au jeu des voisins.
+// B l'écoute : si A fait aussi partie de ses voisins, il est compté trouvé sans second scan.
+export async function saveRetrouvaille(code, profile, toId12) {
+  await ensureAuth();
+  const from = profile.id.slice(0, 12);
+  await withRetry(() => setDoc(doc(db, 'workshops', code, 'retrouvailles', `${from}_${toId12}`), {
+    fromId12: from, fromPseudo: profile.pseudo, toId12, timestamp: new Date().toISOString()
+  }));
+}
+
+export async function watchRetrouvailles(code, id12, cb) {
+  await ensureAuth();
+  const q = query(collection(db, 'workshops', code, 'retrouvailles'), where('toId12', '==', id12));
+  return onSnapshot(q,
+    snap => cb(snap.docChanges().filter(ch => ch.type === 'added').map(ch => ch.doc.data())),
+    err => console.warn('Écoute du jeu interrompue', err));
+}

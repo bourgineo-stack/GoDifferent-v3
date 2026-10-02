@@ -171,7 +171,7 @@
     <p class="chapo">Attendez le signal de l'animateur avant de commencer.</p>
     <ol class="carte regles">
       <li>L'application choisit vos 5 voisins les plus proches parmi les personnes rencontrées.</li>
-      <li>Retrouvez-en 3 dans la salle et scannez leur code.</li>
+      <li>Retrouvez-en 3 dans la salle et scannez leur code. Un scan suffit : s'il vous cherchait aussi, il est compté pour vous deux.</li>
       <li>Vous avez 5 essais : chaque erreur en coûte un.</li>
     </ol>
     <p class="aide">Les personnes qui vous ont scanné sont ajoutées automatiquement à vos contacts.</p>
@@ -196,7 +196,6 @@
     <p id="resultat3" class="resultat" hidden></p>
 
     <button type="button" id="btn-scan3" class="btn"><svg class="ico" aria-hidden="true"><use href="#i-scan"/></svg>Scanner un voisin</button>
-    <button type="button" id="btn-maj3" class="btn btn-second">Actualiser mes contacts</button>
 
     <div class="nav-etapes">
       <button type="button" class="btn-retour" data-action="prev">Retour</button>
@@ -387,9 +386,10 @@
     <p id="chrono-alerte" class="verdict ko" hidden><strong>Temps dépassé</strong><br>Proposez au scribe de passer à la suite.</p>
     <div class="barre"><span id="chrono-barre"></span></div>
     <p id="chrono-total" class="aide"></p>
+    <p class="aide">Le chrono suit le téléphone du scribe : après un changement de phase, l'affichage peut mettre quelques secondes à suivre, jusqu'à 30 si le réseau est lent.</p>
     <div id="chrono-fin" hidden>
-      <p class="verdict ok">La discussion est terminée. Annoncez au groupe le passage aux cercles.</p>
-      <button type="button" class="btn" data-action="goto" data-target="groupe-cercles">Rejoindre les cercles</button>
+      <p class="verdict ok">La discussion est terminée. Annoncez les 5 dernières minutes d'échange.</p>
+      <button type="button" class="btn" data-action="goto" data-target="groupe-cercles">Continuer</button>
     </div>
   </section>
 
@@ -401,14 +401,14 @@
     <h2 class="intertitre">Ressources à consulter</h2>
     <p class="aide">Cherchez des réponses aux questions du scribe.</p>
     <ul id="suivi-ressources" class="liens"></ul>
-    <div id="suivi-fin" hidden><button type="button" class="btn" data-action="goto" data-target="groupe-cercles">Rejoindre les cercles</button></div>
+    <div id="suivi-fin" hidden><button type="button" class="btn" data-action="goto" data-target="groupe-cercles">Continuer</button></div>
   </section>
 
   <!-- Tous : regroupement par intention -->
   <section data-screen="groupe-cercles" data-step="stepgroup" hidden>
-    <h1>Rejoignez votre cercle</h1>
-    <p class="chapo">Pendant 5 minutes, placez-vous dans le cercle du mode que vous aimeriez essayer et échangez avec ceux qui partagent cette envie. Pas encore décidé ? Restez au centre.</p>
-    <ul id="liste-cercles" class="legende cercles"></ul>
+    <h1>Encore 5 minutes</h1>
+    <p class="chapo">Profitez-en pour finir la discussion avec votre groupe. Si quelqu'un d'un groupe voisin correspond mieux à ce que vous voulez faire (même trajet, même envie de covoiturer ou de pédaler), allez lui parler.</p>
+    <p class="verdict">Un bon réflexe : échangez vos pseudos avec les personnes avec qui vous voulez tester une alternative.</p>
     <button type="button" class="btn" data-action="next">Les 5 minutes sont écoulées</button>
   </section>
 
@@ -416,7 +416,6 @@
   <section data-screen="step6" data-step="step6" hidden>
     <h1>Mes engagements</h1>
     <p class="chapo">Quatre questions pour finir. Vos réponses restent anonymes.</p>
-    <p id="alerte-lieu" class="verdict ko" hidden><strong>Adresse de l'entreprise manquante</strong><br>Vos réponses seront bien enregistrées, mais les émissions ne peuvent pas être calculées. Prévenez l'animateur.</p>
     <form id="form-engagements" novalidate>
       <div class="carte">
         <h2>1. Quelle alternative envisagez-vous ?</h2>

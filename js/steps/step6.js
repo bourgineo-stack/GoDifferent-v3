@@ -2,7 +2,7 @@
 import { store } from '../store.js';
 import { show, onEnter } from '../router.js';
 import { saveResponse } from '../db.js';
-import { trajetActuel, gainAlternative, partTrajets, fmtKm, facteurKm, lieuConnu } from '../calc.js';
+import { trajetActuel, gainAlternative, partTrajets, fmtKm, facteurKm } from '../calc.js';
 import { $, esc, toast, busy } from '../ui.js';
 import { ALTERNATIVES, FREINS, LEVIERS, ENGAGEMENTS, MODES, SEMAINES_TRAVAILLEES, COUT_KM_VOITURE } from '../constants.js';
 import { telechargerBilan } from '../pdf.js';
@@ -41,8 +41,6 @@ export function init() {
 
 // ---------- Formulaire ----------
 function fillForm() {
-  const { workshop } = store.get();
-  $('#alerte-lieu').hidden = lieuConnu({ lat: workshop.companyLat, lon: workshop.companyLon });
   const jours = store.get().profile.joursPresence;
   // On n'affiche pas « 4 jours par semaine » à quelqu'un qui en travaille 3
   $('#freq-min').innerHTML = opts(FREQ_MIN.filter(([v]) => v <= jours));

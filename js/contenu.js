@@ -155,11 +155,3 @@ export const CONTENU = {
     }
   }
 };
-
-// Cercles du regroupement par intention (après la discussion en groupe)
-export const CERCLES = [
-  { nom: 'Covoiturage', couleur: '#F7931E' },
-  { nom: 'Transports en commun', couleur: '#8E6FD8' },
-  { nom: 'Vélo, marche', couleur: '#8CC63F' },
-  { nom: 'Électrique', couleur: '#2BA8E0' }
-];

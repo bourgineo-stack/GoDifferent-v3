@@ -4,7 +4,7 @@
 import { db, auth } from './firebase.js';
 import { collection, doc, getDoc, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
 import { GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
-import { roadKm, bearing, trajetActuel, lieuConnu } from './calc.js';
+import { roadKm, bearing, trajetActuel } from './calc.js';
 import { ALTERNATIVES, FREINS, COUT_KM_VOITURE } from './constants.js';
 import { CONFIG } from './config.js';
 
@@ -55,7 +55,6 @@ function ouvrir() {
   $('#accueil').hidden = true;
   $('#tableau').hidden = false;
   $('#code-atelier').textContent = S.code;
-  if (!lieuConnu(work())) $('#code-atelier').textContent += " : adresse de l'entreprise manquante, distances non calculées";
   $('#legende').innerHTML = [...CONFIG.PELOTES, TELETRAVAIL].map(p => `<li><i style="background:${p.hex}"></i>${esc(p.pour)}</li>`).join('');
   setInterval(() => { $('#horloge').textContent = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); }, 1000);
   planifier();
