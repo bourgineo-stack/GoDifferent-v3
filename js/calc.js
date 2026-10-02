@@ -15,3 +15,17 @@ export function roadKm(a, b) {
 export function fmtKm(km) {
   return km < 1 ? `${Math.round(km * 100) * 10} m` : `${km.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} km`;
 }
+
+// Cap (0-360°, 0 = nord) pour aller du point a vers le point b
+export function bearing(a, b) {
+  const rad = d => d * Math.PI / 180;
+  const y = Math.sin(rad(b.lon - a.lon)) * Math.cos(rad(b.lat));
+  const x = Math.cos(rad(a.lat)) * Math.sin(rad(b.lat)) - Math.sin(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.cos(rad(b.lon - a.lon));
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+// « au nord-est », « à l'ouest »...
+export function direction(deg) {
+  const noms = ['au nord', 'au nord-est', "à l'est", 'au sud-est', 'au sud', 'au sud-ouest', "à l'ouest", 'au nord-ouest'];
+  return noms[Math.round(deg / 45) % 8];
+}

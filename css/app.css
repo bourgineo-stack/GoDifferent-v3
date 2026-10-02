@@ -156,4 +156,47 @@ input[type="time"] { color-scheme: dark; }
 .resultat { margin-top: 14px; padding: 14px 16px; border-radius: var(--r-champ); background: var(--surface); font-weight: 600; }
 .resultat.gagne { border-left: 6px solid var(--vert); }
 
+/* ===== Lot 3 : carte humaine, pelotes ===== */
+.schema { margin: 0 0 18px; }
+.schema svg { display: block; width: 100%; height: auto; }
+.schema figcaption { margin-top: 10px; }
+.s-salle { fill: var(--surface); stroke: var(--trait); stroke-width: 2; }
+.s-anneau { fill: none; stroke: var(--trait); stroke-width: 1.5; stroke-dasharray: 5 6; }
+.s-travail { fill: var(--violet); }
+.s-travail-txt { fill: #fff; font: 800 11px 'Atkinson Hyperlegible Next', system-ui, sans-serif; }
+.s-repere { fill: #fff; stroke: var(--vert); stroke-width: 3; }
+.s-nord { stroke: var(--texte-doux); stroke-width: 2; }
+.s-nord-plein { fill: var(--texte-doux); }
+.s-petit { fill: var(--texte-doux); font: 600 11px 'Atkinson Hyperlegible Next', system-ui, sans-serif; }
+.s-txt { fill: var(--texte); font: 600 13px 'Atkinson Hyperlegible Next', system-ui, sans-serif; }
+.s-ok { stroke: var(--vert); stroke-width: 3; }
+.s-ok-plein { fill: var(--vert); }
+.s-ok-txt { fill: var(--vert); font-weight: 800; }
+.s-ko { fill: none; stroke: var(--orange); stroke-width: 2.5; stroke-dasharray: 5 4; }
+.s-ko-plein { fill: var(--orange); }
+.s-ko-txt { fill: var(--orange); font-weight: 800; }
+.s-etiquette { fill: var(--surface); opacity: .92; }
+.s-fantome { fill: none; stroke: var(--orange); stroke-width: 2; stroke-dasharray: 3 3; }
+
+.boussole { display: flex; align-items: center; gap: 16px; }
+.boussole svg { width: 96px; flex: none; }
+.boussole p { font-weight: 600; }
+.b-cadran { fill: var(--surface-2); stroke: var(--trait); stroke-width: 2; }
+.b-n { fill: var(--texte-doux); font: 800 13px 'Atkinson Hyperlegible Next', system-ui, sans-serif; }
+.b-fleche { fill: var(--orange); }
+.b-centre { fill: var(--violet); }
+
+.tableau .aide { margin: 0; }
+.verdict { padding: 14px 16px; border-radius: var(--r-champ); background: var(--surface); border-left: 6px solid var(--bleu); }
+.verdict.ok { border-left-color: var(--vert); }
+.verdict.ko { border-left-color: var(--orange); }
+
+.ma-pelote { display: flex; gap: 16px; align-items: center; border-left: 8px solid var(--pelote, var(--trait)); }
+.pelote { width: 56px; height: 56px; flex: none; border-radius: 50%;
+  background: repeating-linear-gradient(35deg, var(--pelote, var(--trait)) 0 5px, color-mix(in srgb, var(--pelote, var(--trait)) 70%, #000) 5px 7px); }
+.ma-pelote-titre { font-size: 1.2rem; font-weight: 800; }
+.legende { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.legende li { display: flex; gap: 10px; align-items: center; padding: 10px; background: var(--surface); border-radius: var(--r-champ); font-size: .9rem; }
+.pastille { width: 22px; height: 22px; border-radius: 50%; flex: none; }
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

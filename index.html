@@ -201,6 +201,105 @@
     </div>
   </section>
 
+  <!-- ==================== ÉTAPE 4 : CARTE HUMAINE ==================== -->
+  <section data-screen="step4" data-step="step4" hidden>
+    <h1>Carte humaine</h1>
+    <p class="chapo">La salle devient une carte : le travail est au centre, chacun se place là où il habite.</p>
+
+    <figure class="schema">
+      <svg viewBox="0 0 360 360" role="img" aria-labelledby="schema-titre">
+        <title id="schema-titre">Exemple de placement : deux voisins restent côte à côte, deux personnes qui habitent loin l'une de l'autre s'écartent.</title>
+        <defs>
+          <marker id="pointe" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="s-ko-plein"/></marker>
+        </defs>
+        <rect x="6" y="6" width="348" height="348" rx="18" class="s-salle"/>
+        <!-- Nord -->
+        <path d="M322 54 L322 26" class="s-nord"/>
+        <path d="M316 34 L322 22 L328 34 z" class="s-nord-plein"/>
+        <text x="322" y="70" class="s-petit" text-anchor="middle">Nord</text>
+        <!-- Anneaux de distance -->
+        <circle cx="180" cy="180" r="62" class="s-anneau"/>
+        <circle cx="180" cy="180" r="128" class="s-anneau"/>
+        <text x="180" y="112" class="s-petit" text-anchor="middle">5 km</text>
+        <text x="180" y="46" class="s-petit" text-anchor="middle">15 km</text>
+        <!-- Travail -->
+        <circle cx="180" cy="180" r="24" class="s-travail"/>
+        <text x="180" y="185" class="s-travail-txt" text-anchor="middle">Travail</text>
+        <!-- Repère fixe -->
+        <rect x="40" y="70" width="20" height="20" rx="3" class="s-repere"/>
+        <text x="50" y="106" class="s-petit" text-anchor="middle">Repère</text>
+        <!-- Voisins bien placés -->
+        <line x1="262" y1="232" x2="282" y2="248" class="s-ok"/>
+        <circle cx="262" cy="232" r="10" class="s-ok-plein"/>
+        <circle cx="282" cy="248" r="10" class="s-ok-plein"/>
+        <rect x="196" y="265" width="152" height="40" rx="8" class="s-etiquette"/>
+        <text x="272" y="280" class="s-txt" text-anchor="middle">1 km entre nous :</text>
+        <text x="272" y="297" class="s-txt s-ok-txt" text-anchor="middle">on reste côte à côte</text>
+        <!-- Mal placés : l'un s'écarte -->
+        <circle cx="92" cy="250" r="10" class="s-ko-plein"/>
+        <circle cx="114" cy="258" r="10" class="s-fantome"/>
+        <path d="M120 272 Q 128 296 112 314" class="s-ko" marker-end="url(#pointe)"/>
+        <circle cx="104" cy="324" r="10" class="s-ko-plein"/>
+        <rect x="24" y="193" width="144" height="40" rx="8" class="s-etiquette"/>
+        <text x="96" y="208" class="s-txt" text-anchor="middle">9 km entre nous :</text>
+        <text x="96" y="225" class="s-txt s-ko-txt" text-anchor="middle">je m'écarte</text>
+      </svg>
+      <figcaption class="aide">Plus vous habitez loin, plus vous êtes loin du centre. Le nord de la salle est indiqué par l'animateur.</figcaption>
+    </figure>
+
+    <div id="boussole" class="carte boussole">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="54" class="b-cadran"/>
+        <text x="60" y="20" text-anchor="middle" class="b-n">N</text>
+        <g id="boussole-fleche"><path d="M60 22 L70 62 L60 56 L50 62 z" class="b-fleche"/></g>
+        <circle cx="60" cy="60" r="6" class="b-centre"/>
+      </svg>
+      <p id="boussole-texte"></p>
+    </div>
+
+    <h2 class="intertitre">Vérifier ma place</h2>
+    <div class="tableau">
+      <p class="aide">Scannez un voisin de salle ou un repère : l'application vous dit s'il faut rester ou vous écarter. Les autres peuvent scanner votre code.</p>
+      <div id="qr4" class="qr qr-petit" title="Votre code, pour que les autres vous scannent"></div>
+    </div>
+    <div id="verdict4" class="verdict" role="status" hidden></div>
+    <div id="cam4" class="camera" hidden></div>
+    <button type="button" id="btn-scan4" class="btn">Vérifier ma place</button>
+
+    <div class="nav-etapes">
+      <button type="button" class="btn-retour" data-action="prev">Retour</button>
+      <button type="button" class="btn" data-action="next">Je suis bien placé</button>
+    </div>
+  </section>
+
+  <!-- ==================== ÉTAPE 5 : PELOTES ==================== -->
+  <section data-screen="step5" data-step="step5" hidden>
+    <h1>Pelotes de laine</h1>
+    <p class="chapo">Restez à votre place : vous êtes chez vous. Chacun va dérouler son trajet vers le centre.</p>
+
+    <div id="ma-pelote" class="carte ma-pelote">
+      <span class="pelote" aria-hidden="true"></span>
+      <div>
+        <p id="ma-pelote-titre" class="ma-pelote-titre"></p>
+        <p id="ma-pelote-detail"></p>
+      </div>
+    </div>
+
+    <ol class="carte regles">
+      <li>Gardez le bout du fil dans votre main.</li>
+      <li>Quand l'animateur annonce votre heure de départ, déroulez la pelote vers le centre en suivant votre trajet réel.</li>
+      <li>Une fois tous les fils posés, observez : heures de pointe, zones denses, part de la voiture seul.</li>
+    </ol>
+
+    <h2 class="intertitre">Les couleurs</h2>
+    <ul id="legende-pelotes" class="legende"></ul>
+
+    <div class="nav-etapes">
+      <button type="button" class="btn-retour" data-action="prev">Retour</button>
+      <button type="button" class="btn" data-action="next">Suivant</button>
+    </div>
+  </section>
+
   <!-- FIN DES ÉCRANS : les écrans des lots suivants s'insèrent au-dessus de cette ligne -->
 </main>
 
