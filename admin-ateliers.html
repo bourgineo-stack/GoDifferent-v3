@@ -365,6 +365,10 @@
           <label>Capacité max (participants)</label>
           <input id="f-capacity" type="number" value="200" min="10" max="2000">
         </div>
+        <div>
+          <label>Participants attendus</label>
+          <input id="f-attendus" type="number" min="1" max="2000" placeholder="ex : 25">
+        </div>
         <div class="full">
           <label>Adresse de l'entreprise (lieu de l'atelier)</label>
           <div class="adresse-ligne">
@@ -510,6 +514,7 @@ async function saveWorkshop() {
   const code = document.getElementById('f-code').value.trim().toUpperCase().replace(/\s+/g, '-');
   const expiration = document.getElementById('f-expiration').value;
   const capacity = parseInt(document.getElementById('f-capacity').value) || 200;
+  const attendus = parseInt(document.getElementById('f-attendus').value) || null;
   const lat = parseFloat(document.getElementById('f-lat').value);
   const lon = parseFloat(document.getElementById('f-lon').value);
   const adresse = document.getElementById('f-adresse').value.trim();
@@ -533,6 +538,7 @@ async function saveWorkshop() {
 const data = {
   expirationDate: expiration,
   capacity: capacity,
+  expectedParticipants: attendus,
   companyLat: lat,
   companyLon: lon,
   companyAddress: adresse,
@@ -626,6 +632,7 @@ async function editWorkshop(code) {
     document.getElementById('f-code').disabled = true;
     document.getElementById('f-expiration').value = data.expirationDate || '';
     document.getElementById('f-capacity').value = data.capacity || 200;
+    document.getElementById('f-attendus').value = data.expectedParticipants || '';
     document.getElementById('f-gas').value = data.lienAtelier || '';
     document.getElementById('f-step3').checked = data.steps?.step3 ?? true;
     document.getElementById('f-step4').checked = data.steps?.step4 ?? true;
@@ -747,6 +754,7 @@ async function duplicateWorkshop(code) {
     document.getElementById('f-code').value = ''; // Laisse le code vide
     document.getElementById('f-expiration').value = data.expirationDate || '';
     document.getElementById('f-capacity').value = data.capacity || 200;
+    document.getElementById('f-attendus').value = data.expectedParticipants || '';
     document.getElementById('f-gas').value = data.lienAtelier || '';
     document.getElementById('f-step3').checked = data.steps?.step3 ?? true;
     document.getElementById('f-step4').checked = data.steps?.step4 ?? true;
@@ -775,6 +783,7 @@ function cancelEdit() {
   document.getElementById('f-code').disabled = false;
   document.getElementById('f-expiration').value = '';
   document.getElementById('f-capacity').value = '200';
+  document.getElementById('f-attendus').value = '';
   afficherLieu({});
   document.getElementById('f-gas').value = '';
   document.getElementById('f-step3').checked = true;

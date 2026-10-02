@@ -114,3 +114,4 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; background:
 .invitation-texte { display: grid; gap: .6em; font-size: 1.3em; }
 .grand-code { font-family: var(--titre); font-weight: 800; font-size: 3.2em; line-height: 1; background: linear-gradient(90deg, var(--vert), var(--bleu)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .centre-adresse { color: var(--doux); font-size: .8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.kpi-inscrits { cursor: pointer; }

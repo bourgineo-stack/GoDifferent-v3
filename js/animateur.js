@@ -106,9 +106,9 @@ function calculer() {
 
 // ===================== Rendu =====================
 function rendre() {
-  const c = calculer(), n = c.parts.length, cap = S.ws.capacity;
+  const c = calculer(), n = c.parts.length, cap = attendus();
   $('#k-inscrits').textContent = n;
-  $('#k-capacite').textContent = cap ? ` / ${cap}` : '';
+  $('#k-capacite').textContent = cap ? ` / ${cap} attendus` : '';
   $('#k-rencontres').textContent = c.rencontres;
   $('#k-defis').textContent = c.defis;
   $('#k-groupes').textContent = S.groups.size;
@@ -147,9 +147,19 @@ function rendreModes(parts) {
 }
 
 // ----- Jalons : chaque objectif atteint allume une étape ; le dernier fait gagner la séance -----
+// Effectif de référence : corrigé sur place par l'animateur, sinon saisi dans l'admin, sinon la capacité
+const attendus = () => S.attendus || S.ws.expectedParticipants || S.ws.capacity || null;
+
+// Un clic sur « Inscrits » permet d'ajuster le nombre de présents le jour J (non enregistré)
+document.addEventListener('click', e => {
+  if (!e.target.closest('.kpi-inscrits')) return;
+  const v = parseInt(prompt('Combien de participants sont présents dans la salle ?', attendus() || ''), 10);
+  if (v > 0) { S.attendus = v; rendre(); }
+});
+
 function rendreJalons(c, n, cap) {
   const O = CONFIG.OBJECTIFS;
-  const cibleInscrits = cap ? Math.ceil(cap * O.inscriptionPart) : Math.max(10, n);
+  const cibleInscrits = cap ? Math.ceil(cap * O.inscriptionPart) : Math.max(10, n); // 90 % des attendus : un absent ne bloque pas
   const moyRencontres = n ? (c.rencontres * 2) / n : 0;
   const jalons = [
     { nom: 'Toute la salle connectée', detail: `${n} inscrits sur ${cibleInscrits}`, p: n / cibleInscrits },
@@ -398,7 +408,7 @@ function arreterRejeu() {
 // ===================== Démonstration (aucune donnée Firestore) =====================
 function demo() {
   S.code = 'DÉMONSTRATION';
-  S.ws = { companyLat: 47.322, companyLon: 5.041, capacity: 60, companyAddress: 'Dijon (démonstration)' };
+  S.ws = { companyLat: 47.322, companyLon: 5.041, capacity: 80, expectedParticipants: 60, companyAddress: 'Dijon (démonstration)' };
   ouvrir();
   const modes = [['car-thermal', 46], ['car-electric', 6], ['carpool', 8], ['bus', 10], ['train', 6], ['bike', 12], ['ebike', 6], ['walk', 4], ['remote', 2]];
   const tirerMode = () => { let r = Math.random() * 100; for (const [m, w] of modes) { if ((r -= w) < 0) return m; } return 'car-thermal'; };
