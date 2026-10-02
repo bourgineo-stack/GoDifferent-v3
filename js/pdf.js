@@ -6,11 +6,19 @@ import { facteurKm } from './calc.js';
 import { CONFIG } from './config.js';
 
 const JSPDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-const C = { encre: [21, 19, 42], doux: [107, 103, 133], orange: [247, 147, 30], vert: [76, 140, 30], violet: [107, 75, 176], fond: [244, 242, 251] };
-const kg = x => Math.round(x).toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, ' ');
-const km1 = x => x.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
 
-// jsPDF n'est chargé qu'au premier clic (environ 350 Ko épargnés au démarrage)
+// Palette (RVB) : les quatre fils du logo + encre
+const C = {
+  encre: [21, 19, 42], doux: [110, 106, 140], ligne: [226, 223, 240], fondDoux: [246, 245, 252],
+  bleu: [43, 168, 224], vert: [96, 160, 40], vertClair: [234, 245, 222], orange: [247, 147, 30], orangeClair: [254, 240, 224],
+  violet: [107, 75, 176], violetClair: [238, 233, 250], blanc: [255, 255, 255]
+};
+const FILS = [C.bleu, [140, 198, 63], C.orange, [142, 111, 216]];
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+
+// Nombres « 6 802,7 » : jsPDF ne sait pas dessiner l'espace fine insécable du français (elle sortait en « / »)
+const nb = (x, d = 0) => x.toLocaleString('fr-FR', { maximumFractionDigits: d }).replace(/[\u202f\u00a0]/g, ' ');
+
 function loadJsPdf() {
   if (window.jspdf) return Promise.resolve();
   return new Promise((ok, ko) => {
@@ -20,121 +28,255 @@ function loadJsPdf() {
   });
 }
 
-// Libellé lisible d'un frein ou levier, y compris « autre: texte libre »
+// Le logo (webp, non lu par jsPDF) converti en PNG via un canvas
+function logoPng() {
+  return new Promise(ok => {
+    const img = new Image();
+    img.onload = () => {
+      const c = Object.assign(document.createElement('canvas'), { width: img.naturalWidth, height: img.naturalHeight });
+      c.getContext('2d').drawImage(img, 0, 0);
+      ok({ data: c.toDataURL('image/png'), ratio: img.naturalWidth / img.naturalHeight });
+    };
+    img.onerror = () => ok(null);
+    img.src = 'logo.webp';
+  });
+}
+
 const libelle = (dico, v) => v?.startsWith('autre: ') ? v.slice(7) : (dico[v] || v || '');
 
 export async function telechargerBilan({ reponse, profile, contacts, groupe }) {
   await loadJsPdf();
+  const logo = await logoPng();
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const L = 16, W = 178, BAS = 280;
+  const L = 16, W = 178, BAS = 279;
   let y = 0, page = 1;
   const d = reponse.data;
 
-  // ---- Outils de mise en page ----
-  const couleur = c => doc.setTextColor(...c);
-  const police = (taille, gras = false) => { doc.setFontSize(taille); doc.setFont('helvetica', gras ? 'bold' : 'normal'); };
-  const place = h => { if (y + h > BAS) { pied(); doc.addPage(); page++; y = 20; } };
-  const texte = (t, taille = 10, c = C.encre, gras = false, x = L, largeur = W) => {
-    police(taille, gras); couleur(c);
-    const lignes = doc.splitTextToSize(String(t), largeur);
-    const h = lignes.length * taille * 0.42;
-    place(h);
-    doc.text(lignes, x, y + taille * 0.35);
-    y += h + 1.5;
-  };
-  const titre = t => { y += 4; place(12); police(11, true); couleur(C.violet); doc.text(t.toUpperCase(), L, y + 4); y += 6; doc.setDrawColor(...C.violet); doc.setLineWidth(0.4); doc.line(L, y, L + W, y); y += 4; };
-  const ligne = (a, b) => { place(7); police(10); couleur(C.doux); doc.text(a, L, y + 4); police(10, true); couleur(C.encre); doc.text(b, L + W, y + 4, { align: 'right' }); y += 7; };
+  // ---------- Outils ----------
+  const fill = c => doc.setFillColor(...c);
+  const ink = c => doc.setTextColor(...c);
+  const draw = c => doc.setDrawColor(...c);
+  const font = (t, g = false) => { doc.setFontSize(t); doc.setFont('helvetica', g ? 'bold' : 'normal'); };
+  const txt = (t, x, yy, o) => doc.text(String(t), x, yy, o);
+  const carte = (x, yy, w, h, fond, r = 4) => { fill(fond); doc.roundedRect(x, yy, w, h, r, r, 'F'); };
+  const place = h => { if (y + h > BAS) { pied(); doc.addPage(); page++; entetePetit(); } };
+  const lignes = (t, larg, taille) => { font(taille); return doc.splitTextToSize(String(t), larg); };
+
+  function filCouleurs(yy, h = 1.6) { FILS.forEach((c, i) => { fill(c); doc.rect(i * 52.5, yy, 52.5, h, 'F'); }); }
+  function entete(titre, sousTitre) {
+    fill(C.encre); doc.rect(0, 0, 210, 34, 'F');
+    if (logo) doc.addImage(logo.data, 'PNG', L, 8, 18 * logo.ratio, 18);
+    font(15, true); ink(C.blanc); txt(titre, L + W, 15, { align: 'right' });
+    font(9); ink([200, 196, 230]); txt(sousTitre, L + W, 22, { align: 'right' });
+    filCouleurs(34);
+    y = 46;
+  }
+  function entetePetit() {
+    fill(C.encre); doc.rect(0, 0, 210, 12, 'F'); filCouleurs(12, 1);
+    font(8, true); ink(C.blanc); txt('GoDifferent', L, 8); font(8); txt(profile.pseudo, L + W, 8, { align: 'right' });
+    y = 22;
+  }
   function pied() {
-    police(8); couleur(C.doux);
-    doc.text('GoDifferent, ateliers de mobilité durable. Document personnel.', L, 290);
-    doc.text(`Page ${page}`, L + W, 290, { align: 'right' });
+    draw(C.ligne); doc.setLineWidth(0.3); doc.line(L, 284, L + W, 284);
+    font(7.5); ink(C.doux);
+    txt('GoDifferent, ateliers de mobilité durable. Document personnel, à conserver.', L, 289);
+    txt(`${page}`, L + W, 289, { align: 'right' });
+  }
+  function titre(t, couleur = C.violet) {
+    place(14);
+    fill(couleur); doc.roundedRect(L, y, 3, 7, 1, 1, 'F');
+    font(12, true); ink(C.encre); txt(t, L + 6, y + 5.5);
+    y += 10.5;
+  }
+  // Pastilles à la suite, retour à la ligne automatique
+  function pastilles(items, fond, texte) {
+    let x = L;
+    font(9.5, true);
+    items.forEach(t => {
+      const w = doc.getTextWidth(t) + 8;
+      if (x + w > L + W) { x = L; y += 10; }
+      place(10);
+      carte(x, y, w, 7.5, fond, 3.7); ink(texte); txt(t, x + 4, y + 5.1);
+      x += w + 3;
+    });
+    y += 12;
   }
 
-  // ---- En-tête ----
-  doc.setFillColor(...C.encre); doc.rect(0, 0, 210, 26, 'F');
-  police(18, true); couleur(C.orange); doc.text('GoDifferent', L, 15);
-  police(10); doc.setTextColor(255, 255, 255);
-  doc.text('Mon bilan mobilité', L + W, 11, { align: 'right' });
-  doc.text(`${profile.pseudo}, ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`, L + W, 18, { align: 'right' });
-  y = 36;
+  // ---- Hypothèses (en fin de document) ----
+  function hypotheses() {
+  const hyp = `Distance à vol d'oiseau multipliée par 1,3. ${SEMAINES_TRAVAILLEES} semaines travaillées par an. Facteur d'émission de votre trajet actuel : ${nb(reponse.facteur * 1000)} g CO2e par km et par personne. Économies calculées sur l'usage de la voiture uniquement (${String(COUT_KM_VOITURE).replace('.', ',')} euro par km), hors coût de l'alternative. Gain espéré = minimum garanti + (objectif - minimum) x probabilité indiquée.`;
+  const l = lignes(hyp, W - 10, 7.5);
+  place(l.length * 3.3 + 10);
+  carte(L, y, W, l.length * 3.3 + 8, C.fondDoux, 3);
+  font(7.5, true); ink(C.doux); txt('HYPOTHÈSES DE CALCUL', L + 5, y + 5);
+  font(7.5); doc.text(l, L + 5, y + 9.5);
+  y += l.length * 3.3 + 12;
+  }
+
+  // ===================== PAGE 1 =====================
+  entete('Mon bilan mobilité', `${profile.pseudo}  ·  ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`);
+  const pas = d.engagement === 'pas_maintenant' || d.alternative_1 === 'aucun';
+  const sansDistance = !d.distance_km;
 
   // ---- Chiffre principal ----
-  const pas = d.engagement === 'pas_maintenant' || d.alternative_1 === 'aucun';
-  doc.setFillColor(...C.fond); doc.roundedRect(L, y, W, 38, 3, 3, 'F');
-  police(10); couleur(C.doux);
-  doc.text(pas ? 'Vos émissions actuelles' : 'Votre réduction espérée', 105, y + 9, { align: 'center' });
-  police(32, true); couleur(pas ? C.encre : C.vert);
-  doc.text(`${pas ? '' : '-'}${kg(pas ? d.emissions_actuelles_kg : d.gain_espere_kg)} kg CO2 / an`, 105, y + 23, { align: 'center' });
-  police(9); couleur(C.doux);
-  doc.text(pas ? 'Pas de changement prévu pour l\'instant : chaque trajet compte, le jour où vous le déciderez.'
-    : `Soit l'équivalent de ${kg(d.gain_espere_kg / facteurKm('car-thermal'))} km parcourus en voiture thermique.`, 105, y + 32, { align: 'center' });
-  y += 44;
+  carte(L, y, W, 35, pas ? C.fondDoux : C.vertClair, 6);
+  font(10, true); ink(pas ? C.doux : C.vert);
+  txt(pas ? 'VOS ÉMISSIONS ACTUELLES' : 'VOTRE RÉDUCTION ESPÉRÉE', L + 10, y + 9);
+  font(34, true); ink(pas ? C.encre : C.vert);
+  txt(`${pas ? '' : '-'}${nb(pas ? d.emissions_actuelles_kg : d.gain_espere_kg)}`, L + 10, y + 24);
+  const largeur = doc.getTextWidth(`${pas ? '' : '-'}${nb(pas ? d.emissions_actuelles_kg : d.gain_espere_kg)}`);
+  font(13, true); txt('kg CO2 / an', L + 13 + largeur, y + 24);
+  font(9); ink(C.doux);
+  txt(sansDistance ? "Distance non calculée : l'adresse de l'entreprise manquait dans l'atelier."
+    : pas ? "Pas de changement prévu pour l'instant : chaque trajet comptera, le jour venu."
+    : `Soit l'équivalent de ${nb(d.gain_espere_kg / facteurKm('car-thermal'))} km parcourus en voiture thermique.`, L + 10, y + 30.5);
+  y += 40;
 
+  // ---- Trois paliers ----
   if (!pas) {
-    const col = W / 3;
-    [['Minimum garanti', d.gain_potentiel_min_kg, C.encre], ['Espéré', d.gain_espere_kg, C.vert], ['Objectif', d.gain_potentiel_max_kg, C.encre]]
-      .forEach(([l, v, c], i) => {
-        police(8); couleur(C.doux); doc.text(l.toUpperCase(), L + col * i + col / 2, y + 4, { align: 'center' });
-        police(14, true); couleur(c); doc.text(`-${kg(v)} kg`, L + col * i + col / 2, y + 11, { align: 'center' });
+    const w = (W - 8) / 3;
+    [['MINIMUM GARANTI', d.gain_potentiel_min_kg, C.bleu, false], ['ESPÉRÉ', d.gain_espere_kg, C.vert, true], ['OBJECTIF', d.gain_potentiel_max_kg, [142, 111, 216], false]]
+      .forEach(([l, v, c, fort], i) => {
+        const x = L + i * (w + 4);
+        carte(x, y, w, 18, fort ? c : C.fondDoux, 4);
+        if (!fort) { fill(c); doc.rect(x, y + 3, 1.6, 12, 'F'); }
+        font(7.5, true); ink(fort ? C.blanc : C.doux); txt(l, x + w / 2, y + 7, { align: 'center' });
+        font(15, true); ink(fort ? C.blanc : C.encre); txt(`-${nb(v)} kg`, x + w / 2, y + 14.5, { align: 'center' });
       });
-    y += 16;
-    if (d.economie_max_euros > 0) texte(`Jusqu'à ${kg(d.economie_max_euros)} euros par an d'économie sur l'usage de la voiture si vous atteignez votre objectif.`, 10, C.encre, true);
+    y += 23;
+    if (d.economie_max_euros > 0) {
+      carte(L, y, W, 11, C.orangeClair, 4);
+      font(10, true); ink([170, 90, 0]);
+      txt(`Jusqu'à ${nb(d.economie_max_euros)} euros par an d'économie sur l'usage de la voiture, si vous atteignez votre objectif.`, L + 6, y + 7);
+      y += 14;
+    }
   }
 
-  // ---- Situation ----
-  titre('Votre situation');
-  ligne('Mode actuel', `${MODES[d.transport_actuel] || d.transport_actuel}${d.transport_secondaire ? ` (${d.mode1_days} j) + ${MODES[d.transport_secondaire]} (${d.mode2_days} j)` : ''}`);
-  ligne('Distance domicile-travail', `${km1(d.distance_km)} km`);
-  ligne('Rythme', `${d.jours_presence} jours par semaine, ${d.nb_trajets_ar} aller-retour par jour, départ ${d.heure_depart}`);
-  ligne('Kilomètres par an', `${kg(reponse.kmAn)} km`);
-  ligne('Émissions actuelles', `${kg(d.emissions_actuelles_kg)} kg CO2 par an`);
+  // ---- Le trajet, dessiné ----
+  titre('Votre trajet aujourd\'hui', C.bleu);
+  place(34);
+  const mode = MODES[d.transport_actuel] || d.transport_actuel;
+  const pelote = CONFIG.PELOTES.find(p => p.modes.includes(d.transport_actuel));
+  const coul = pelote ? hex(pelote.hex) : C.doux;
+  const x1 = L + 8, x2 = L + 108;
+  draw(coul); doc.setLineWidth(1.6); doc.line(x1, y + 10, x2, y + 10);
+  fill(C.blanc); draw(coul); doc.setLineWidth(1.2); doc.circle(x1, y + 10, 4, 'FD');
+  fill(C.violet); doc.circle(x2, y + 10, 4, 'F');
+  font(7, true); ink(C.doux); txt('DOMICILE', x1, y + 19, { align: 'center' }); txt('TRAVAIL', x2, y + 19, { align: 'center' });
+  font(11, true); ink(C.encre); txt(sansDistance ? 'distance inconnue' : `${nb(d.distance_km, 1)} km`, (x1 + x2) / 2, y + 7, { align: 'center' });
+  font(9); ink(C.doux);
+  txt(d.transport_secondaire ? `${mode} ${d.mode1_days} j + ${MODES[d.transport_secondaire]} ${d.mode2_days} j` : mode, (x1 + x2) / 2, y + 16, { align: 'center' });
+  // Indicateurs à droite
+  [['Km par an', `${nb(reponse.kmAn)} km`], ['Émissions', `${nb(d.emissions_actuelles_kg)} kg CO2`], ['Rythme', `${d.jours_presence} j/sem, départ ${d.heure_depart}`]]
+    .forEach(([l, v], i) => { font(7.5, true); ink(C.doux); txt(l.toUpperCase(), L + 122, y + 2 + i * 10); font(10, true); ink(C.encre); txt(v, L + 122, y + 6.5 + i * 10); });
+  y += 28;
 
   // ---- Choix ----
-  titre('Vos choix');
-  ligne(ALTERNATIVES[d.alternative_1], d.alternative_1 === 'aucun' ? '' : `-${kg(d.gain_max_kg)} kg si 100 % des trajets`);
-  if (d.alternative_2) ligne(`Plan B : ${ALTERNATIVES[d.alternative_2]}`, `-${kg(reponse.gain2)} kg si 100 % des trajets`);
-  ligne('Engagement', ENGAGEMENTS[d.engagement]);
-  if (!pas) ligne('Part de vos trajets', `de ${Math.round(d.frequency_min * 100)} % à ${Math.round(d.frequency_max * 100)} %, probabilité ${Math.round(d.proba_max * 100)} %`);
+  titre('Vos choix pour changer', C.orange);
+  place(20);
+  carte(L, y, W, 16, C.fondDoux, 4); fill(C.orange); doc.rect(L, y + 3, 1.6, 10, 'F');
+  font(7.5, true); ink(C.doux); txt('PREMIER CHOIX', L + 6, y + 6);
+  font(12, true); ink(C.encre); txt(ALTERNATIVES[d.alternative_1] || '', L + 6, y + 12.5);
+  if (d.alternative_1 !== 'aucun') { font(11, true); ink(C.vert); txt(`-${nb(d.gain_max_kg)} kg si 100 % des trajets`, L + W - 6, y + 10, { align: 'right' }); }
+  y += 20;
+  if (d.alternative_2) {
+    place(10);
+    font(10); ink(C.doux); txt(`Plan B : ${ALTERNATIVES[d.alternative_2]}`, L + 6, y + 4);
+    font(10, true); ink(C.encre); txt(`-${nb(reponse.gain2)} kg si 100 %`, L + W - 6, y + 4, { align: 'right' });
+    y += 9;
+  }
+  // Engagement : jauge de la part des trajets visée
+  place(20);
+  font(10, true); ink(C.encre); txt(ENGAGEMENTS[d.engagement] || '', L, y + 4);
+  if (!pas) {
+    const jx = L, jw = W, jy = y + 8;
+    fill(C.ligne); doc.roundedRect(jx, jy, jw, 4, 2, 2, 'F');
+    fill(C.vert); doc.roundedRect(jx + jw * d.frequency_min, jy, Math.max(2, jw * (d.frequency_max - d.frequency_min)), 4, 2, 2, 'F');
+    font(8); ink(C.doux);
+    txt(`De ${nb(d.frequency_min * 100)} % à ${nb(d.frequency_max * 100)} % de vos trajets, probabilité d'y arriver : ${nb(d.proba_max * 100)} %`, L, jy + 9);
+    y += 22;
+  } else y += 8;
+
+  // ---- Freins et leviers ----
   const freins = [d.frein_1, d.frein_2].filter(Boolean).map(f => libelle(FREINS, f));
   const leviers = [d.levier_1, d.levier_2].filter(Boolean).map(l => libelle(LEVIERS, l));
-  ligne('Ce qui vous freine', '');
-  freins.forEach(f => texte(`- ${f}`, 10, C.encre, false, L + 4, W - 4));
-  ligne('Ce qui vous aiderait', '');
-  leviers.forEach(l => texte(`- ${l}`, 10, C.encre, false, L + 4, W - 4));
+  // Deux colonnes côte à côte : freins à gauche, leviers à droite
+  place(14 + 10 * Math.max(freins.length, leviers.length));
+  const colonne = (x, nom, items, accent, fond, texte) => {
+    fill(accent); doc.roundedRect(x, y, 3, 7, 1, 1, 'F');
+    font(12, true); ink(C.encre); txt(nom, x + 6, y + 5.5);
+    items.forEach((t, i) => {
+      const ln = doc.splitTextToSize(t, 78)[0];
+      carte(x, y + 11 + i * 10, 86, 8, fond, 4);
+      font(9.5, true); ink(texte); txt(ln, x + 4, y + 16.3 + i * 10);
+    });
+  };
+  colonne(L, 'Ce qui vous freine', freins, C.orange, C.orangeClair, [150, 80, 0]);
+  colonne(L + 92, 'Ce qui vous aiderait', leviers, C.vert, C.vertClair, [60, 110, 20]);
+  y += 14 + 10 * Math.max(freins.length, leviers.length);
 
   // ---- Voisins ----
-  const voisins = [...contacts].filter(c => c.distance < CONFIG.DISTANCE_THRESHOLD_KM).sort((a, b) => a.distance - b.distance).slice(0, 6);
+  const voisins = [...contacts].filter(c => c.distance < CONFIG.DISTANCE_THRESHOLD_KM).sort((a, b) => a.distance - b.distance).slice(0, 8);
   if (voisins.length) {
-    titre('Vos voisins, pour covoiturer');
-    texte(voisins.map(v => `${v.pseudo} (${km1(v.distance)} km)`).join(', '), 10);
-    texte("Retrouvez-les par leur pseudo auprès de l'animateur ou lors du prochain atelier.", 9, C.doux);
+    titre('Vos voisins, pour covoiturer', C.bleu);
+    pastilles(voisins.map(v => `${v.pseudo}  ${nb(v.distance, 1)} km`), [228, 243, 251], [20, 100, 140]);
   }
 
-  // ---- Hypothèses ----
-  titre('Hypothèses de calcul');
-  texte(`Distance à vol d'oiseau multipliée par 1,3. ${SEMAINES_TRAVAILLEES} semaines travaillées par an. Facteur d'émission de votre trajet actuel : ${Math.round(reponse.facteur * 1000)} g CO2e par km et par personne. Économies calculées sur l'usage de la voiture uniquement (${String(COUT_KM_VOITURE).replace('.', ',')} euro par km), hors coût de l'alternative. Gain espéré = minimum garanti + (objectif - minimum) x probabilité indiquée.`, 8, C.doux);
+  if (!groupe?.distance) hypotheses();
   pied();
 
-  // ---- Page 2 : le groupe ----
+  // ===================== PAGE 2 : le groupe =====================
   if (groupe?.distance) {
-    doc.addPage(); page++; y = 20;
-    police(16, true); couleur(C.encre); doc.text('La voix de votre groupe', L, y); y += 6;
-    texte(groupe.distance === 'proche' ? 'Groupe habitant près du travail' : 'Groupe habitant loin du travail', 10, C.doux);
+    doc.addPage(); page++;
+    const dist = groupe.distance === 'proche' ? 'proche' : 'eloigne';
+    entete('La voix de votre groupe', dist === 'proche' ? 'Groupe habitant près du travail' : 'Groupe habitant loin du travail');
     let data = {}, notes = {};
-    try { data = JSON.parse(groupe.data || '{}'); } catch { /* données absentes */ }
-    try { notes = JSON.parse(groupe.phaseNotes || '{}'); } catch { /* notes absentes */ }
-    THEMES[groupe.distance === 'proche' ? 'proche' : 'eloigne'].forEach((t, i) => {
-      const k = i === 0 ? 'theme1' : 'theme2', dt = data[k] || {}, nt = notes[k] || {};
-      titre(t.nom);
-      const fr = [...(dt.freins || [])].sort((a, b) => b.votes - a.votes).slice(0, 3);
-      if (fr.length) { texte('Freins identifiés ensemble', 10, C.encre, true); fr.forEach(f => texte(`- ${f.text} (${f.votes} voix)`, 10, C.encre, false, L + 4, W - 4)); }
-      const val = Object.entries(dt.valeurs || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
-      if (val.length) { texte('Valeurs prioritaires', 10, C.encre, true); val.forEach(([v, n]) => texte(`- ${v} (${n} voix)`, 10, C.encre, false, L + 4, W - 4)); }
-      if ((dt.engagements || []).length) { texte('Engagements pris ensemble', 10, C.encre, true); dt.engagements.forEach(e => texte(`- ${e.text} : ${e.count} personne${e.count > 1 ? 's' : ''}`, 10, C.encre, false, L + 4, W - 4)); }
-      PHASES.forEach(p => { if (nt[p.key]) texte(`Notes, phase ${p.nom} : ${nt[p.key]}`, 9, C.doux); });
+    try { data = JSON.parse(groupe.data || '{}'); } catch { /* absentes */ }
+    try { notes = JSON.parse(groupe.phaseNotes || '{}'); } catch { /* absentes */ }
+
+    THEMES[dist].forEach((t, i) => {
+      const k = i === 0 ? 'theme1' : 'theme2', dt = data[k] || {}, nt = notes[k] || {}, col = hex(t.couleur);
+      titre(t.nom, col);
+      const barres = (titreBloc, items) => {
+        if (!items.length) return;
+        const max = Math.max(...items.map(x => x.n));
+        place(8); font(8, true); ink(C.doux); txt(titreBloc.toUpperCase(), L, y + 3); y += 6;
+        items.forEach(x => {
+          place(8);
+          font(9.5); ink(C.encre); txt(doc.splitTextToSize(x.t, 92)[0], L, y + 4);
+          fill(C.ligne); doc.roundedRect(L + 96, y + 1, 70, 3.5, 1.7, 1.7, 'F');
+          fill(col); doc.roundedRect(L + 96, y + 1, Math.max(3, 70 * x.n / max), 3.5, 1.7, 1.7, 'F');
+          font(9.5, true); txt(String(x.n), L + W, y + 4, { align: 'right' });
+          y += 7;
+        });
+        y += 2;
+      };
+      barres('Freins identifiés ensemble (voix)', [...(dt.freins || [])].sort((a, b) => b.votes - a.votes).slice(0, 4).map(f => ({ t: f.text, n: f.votes })));
+      barres('Valeurs prioritaires (voix)', Object.entries(dt.valeurs || {}).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([v, n]) => ({ t: v, n })));
+      barres('Engagements pris ensemble (personnes)', (dt.engagements || []).map(e => ({ t: e.text, n: e.count })));
+      PHASES.forEach(p => {
+        if (!nt[p.key]) return;
+        const ln = lignes(`${p.nom} : ${nt[p.key]}`, W - 6, 9);
+        place(ln.length * 4 + 2); font(9); ink(C.doux); doc.text(ln, L + 3, y + 3.5); y += ln.length * 4 + 2;
+      });
+      if (!(dt.freins || []).length && !Object.keys(dt.valeurs || {}).length && !(dt.engagements || []).length) {
+        font(9); ink(C.doux); txt('Aucun vote enregistré sur ce sujet.', L, y + 3); y += 7;
+      }
+      y += 3;
     });
-    if (groupe.notes) { titre('Le mot de la fin'); texte(groupe.notes, 10); }
+
+    if (groupe.notes) {
+      const ln = lignes(groupe.notes, W - 22, 11);
+      place(ln.length * 5 + 22);
+      carte(L, y, W, ln.length * 5 + 16, C.violetClair, 6);
+      font(40, true); ink([142, 111, 216]); txt('"', L + 6, y + 17);
+      font(8, true); ink(C.violet); txt('LE MOT DE LA FIN', L + 18, y + 7);
+      font(11, true); ink(C.encre); doc.text(ln, L + 18, y + 13);
+      y += ln.length * 5 + 20;
+    }
+    y += 4;
+    hypotheses();
     pied();
   }
 

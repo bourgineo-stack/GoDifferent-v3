@@ -81,6 +81,12 @@ async function toggleWatch(on) {
         setG({ doc, id: doc.id });
         const screen = store.get().screen;
         if (wasNew && screen === 'groupe-attente') { toast(`Vous avez rejoint le groupe de ${doc.scribePseudo || 'votre scribe'}.`); goToFollowView(); }
+        else if (doc.statut === 'termine' && ['groupe-chrono', 'groupe-suivi', 'groupe-attente'].includes(screen)) {
+          // Le scribe a terminé : tout le groupe passe aux cercles en même temps que lui
+          navigator.vibrate?.([120, 80, 120]);
+          toast('Discussion terminée : rejoignez votre cercle.');
+          show('groupe-cercles');
+        }
         else if (screen === 'groupe-chrono') renderChrono();
         else if (screen === 'groupe-suivi') renderSuivi();
       });

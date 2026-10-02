@@ -49,8 +49,11 @@ export function facteurKm(mode) {
 const PART_VOITURE = { 'car-thermal': 1, 'car-electric': 1, carpool: 0.5 };
 
 // Situation actuelle : distance, km par an, facteur moyen (pondéré si deux modes), émissions
+// Coordonnées d'entreprise exploitables ? (l'outil admin met 0 par défaut)
+export const lieuConnu = w => Number.isFinite(w?.lat) && Number.isFinite(w?.lon) && !(w.lat === 0 && w.lon === 0);
+
 export function trajetActuel(profile, work) {
-  const distanceKm = roadKm(work, profile);
+  const distanceKm = lieuConnu(work) ? roadKm(work, profile) : 0;
   const kmAn = distanceKm * 2 * profile.nbTrajetsAR * profile.joursPresence * SEMAINES_TRAVAILLEES;
   const multi = profile.transport2 && profile.mode1Days > 0 && profile.mode2Days > 0;
   const moyenne = f => multi
