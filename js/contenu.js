@@ -51,7 +51,7 @@ export const CONTENU = {
       ],
       discussion: [
         'Le vélo électrique lève-t-il certains de ces freins ?',
-        'Connaissez-vous le forfait mobilités durables (jusqu\'à 700 € par an) ?', // À VÉRIFIER : plafond en vigueur
+        'Connaissez-vous le forfait mobilités durables (jusqu\'à 600 € par an exonérés dans le privé) ?',
         'Y a-t-il des douches au travail ?'
       ]
     },
@@ -71,7 +71,7 @@ export const CONTENU = {
       discussion: [
         'Qui connaissait cette obligation ?',
         'Avec 50 % remboursés, combien vous coûte votre abonnement annuel ?',
-        'Comparez au coût réel de la voiture (environ 3 200 € par an pour 30 km).' // À VÉRIFIER : incohérent avec les autres chiffres de coût
+        'Comparez au coût réel de la voiture : environ 3 400 € par an pour 30 km (fiche « Coût réel de la voiture »).'
       ]
     },
     freins: {
@@ -96,10 +96,10 @@ export const CONTENU = {
   },
   covoiturage: {
     revelation: {
-      question: "Un trajet de 30 km aller-retour en voiture seul, combien par an ?",
-      reponse: 'Environ 3 200 € par an (14 € par jour sur 220 jours)', // À VÉRIFIER : base de calcul à aligner sur le lot 5
+      question: "Un trajet de 30 km (aller) en voiture seul, combien par an ?",
+      reponse: 'Environ 3 400 € par an : 15,60 € par jour sur 220 jours, carburant, usure, assurance et entretien',
       discussion: [
-        'À deux, cela fait 1 600 € d\'économie. Vous en feriez quoi ?',
+        'À deux, en alternance, cela fait 1 700 € d\'économie chacun. Vous en feriez quoi ?',
         'Qui savait que le forfait mobilités durables couvre aussi le covoiturage ?',
         'Combien de places vides dans vos voitures ce matin ?'
       ]
@@ -129,7 +129,7 @@ export const CONTENU = {
       question: 'Électrique ou thermique : quelle différence de CO2 par kilomètre ?',
       reponse: '190 g en thermique contre 20 g en électrique, soit -90 %', // À VÉRIFIER : à aligner sur le facteur retenu au lot 5
       discussion: [
-        'Et en coût ? Environ 150 € par mois en thermique contre 30 € en électrique.', // À VÉRIFIER
+        'Et en coût ? Environ 170 € de carburant par mois contre 40 € d\'électricité, pour 30 km de trajet.',
         "Qui fait moins de 50 km par jour ? L'autonomie suffit largement.",
         'Qui a déjà été passager dans une électrique ?'
       ]
@@ -142,7 +142,7 @@ export const CONTENU = {
       discussion: [
         'Connaissez-vous vos kilomètres réels par jour ?',
         "L'autopartage permet de tester sans acheter.",
-        'Les aides peuvent atteindre 7 000 € (bonus et prime à la conversion).' // À VÉRIFIER : prime à la conversion supprimée fin 2024
+        'Des aides à l\'achat existent (dispositifs nationaux, aides locales) : leurs montants changent souvent, vérifiez ceux du moment.' // À VÉRIFIER avant chaque atelier
       ]
     },
     action: {
@@ -150,7 +150,7 @@ export const CONTENU = {
       astuces: [
         "Les services d'autopartage permettent de louer une électrique à la journée.",
         "Faites un essai en covoiturant avec quelqu'un qui roule en électrique.",
-        'Calculez votre coût réel actuel : souvent 400 à 500 € par mois tout compris.' // À VÉRIFIER
+        'Calculez votre coût réel actuel : souvent 400 à 450 € par mois tout compris (fiche « Coût réel de la voiture »).'
       ]
     }
   }

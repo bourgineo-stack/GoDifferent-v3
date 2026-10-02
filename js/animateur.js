@@ -55,6 +55,17 @@ function ouvrir() {
   $('#accueil').hidden = true;
   $('#tableau').hidden = false;
   $('#code-atelier').textContent = S.code;
+  // Invitation : QR vers l'app participant (même dossier), code déjà rempli
+  const url = `${location.href.replace(/animateur\.html.*$/, '')}?code=${encodeURIComponent(S.code)}`;
+  const qr = (el, taille) => { el.innerHTML = ''; new window.QRCode(el, { text: url, width: taille, height: taille, colorDark: '#15132A', colorLight: '#ffffff' }); };
+  qr($('#mini-qr'), 64);
+  $('#btn-inviter').onclick = () => {
+    qr($('#grand-qr'), Math.min(innerHeight * 0.7, innerWidth * 0.45));
+    $('#grand-code').textContent = S.code;
+    $('#grand-url').textContent = url.replace(/^https?:\/\//, '');
+    $('#invitation').hidden = false;
+  };
+  $('#btn-fermer-invit').onclick = () => { $('#invitation').hidden = true; };
   $('#legende').innerHTML = [...CONFIG.PELOTES, TELETRAVAIL].map(p => `<li><i style="background:${p.hex}"></i>${esc(p.pour)}</li>`).join('');
   setInterval(() => { $('#horloge').textContent = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); }, 1000);
   planifier();
@@ -174,7 +185,7 @@ function rendreCarte(parts) {
   echelle = [5, 10, 20, 30, 50, 80, 120].find(v => v >= p95) || 120;
   const anneaux = [1, 2, 5, 10, 20, 50, 100].filter(v => v < echelle).slice(-3).concat(echelle);
   if (!svg.querySelector('#fond')) {
-    svg.innerHTML = `<g id="fond"></g><g id="fils"></g><g id="points"></g>
+    svg.innerHTML = `<g id="fond"></g><g id="points"></g>
       <circle cx="${C0}" cy="${C0}" r="26" class="travail"/><text x="${C0}" y="${C0 + 6}" class="travail-txt">Travail</text>
       <text x="${C0}" y="34" class="nord">N</text>`;
   }
@@ -197,32 +208,189 @@ function rendreCarte(parts) {
   });
 }
 
-// ----- Rejouer la matinée : chaque fil part vers le centre à l'heure de départ de la personne -----
-let rejeu = null;
+// ----- Rejouer la matinée -----
+// Dynamique reprise de « Simulation pelotes » : chacun part de chez lui à son heure de départ réelle,
+// à la vitesse de son mode, en suivant un réseau de routes radiales qui convergent vers le travail.
+// Les fils se superposent sur les mêmes axes : c'est là que naissent les lignes de covoiturage.
+const VITESSE_KMH = { 'car-thermal': 45, 'car-electric': 45, carpool: 40, bus: 22, train: 30, bike: 16, ebike: 20, walk: 5 };
+const AXES = 8, ANNEAUX = 6;
+let reseau = null, rejeu = null;
+
+function aleatoire(graine) { // générateur reproductible : le réseau est le même à chaque rejeu
+  return () => { graine |= 0; graine = graine + 0x6D2B79F5 | 0; let t = Math.imul(graine ^ graine >>> 15, 1 | graine); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+
+function construireReseau() {
+  const rnd = aleatoire(42), N = [{ x: 0, y: 0 }], E = [];
+  for (let a = 0; a < AXES; a++) {
+    const ang = (2 * Math.PI / AXES) * a + (a % 2 ? 0.15 : 0);
+    let prec = 0;
+    for (let r = 1; r <= ANNEAUX; r++) {
+      const d = r / ANNEAUX, w = Math.sin(a * 3 + r * 2) * 0.04;
+      N.push({ x: Math.sin(ang + w * r) * d * 1.08, y: -Math.cos(ang + w * r) * d * 1.08 });
+      E.push([prec, N.length - 1]); prec = N.length - 1;
+    }
+  }
+  for (let r = 1; r <= ANNEAUX; r++) for (let a = 0; a < AXES; a++) E.push([1 + a * ANNEAUX + r - 1, 1 + ((a + 1) % AXES) * ANNEAUX + r - 1]);
+  for (let a = 0; a < AXES; a++) for (let r = 2; r <= ANNEAUX; r++) {
+    const b = N[1 + a * ANNEAUX + r - 1], ang = (2 * Math.PI / AXES) * a + Math.PI / AXES, l = 0.08 + rnd() * 0.06;
+    N.push({ x: b.x + Math.sin(ang) * l, y: b.y - Math.cos(ang) * l }); E.push([1 + a * ANNEAUX + r - 1, N.length - 1]);
+  }
+  const adj = N.map(() => []); E.forEach(([a, b]) => { adj[a].push(b); adj[b].push(a); });
+  const ext = a => 1 + a * ANNEAUX + ANNEAUX - 1;
+  const res = { N, E, adj, tc: [] };
+  res.tc = [[0, 4], [2, 6], [1, 5]].map(([a, b]) => chemin(res, ext(a), ext(b))); // trois lignes de transport en commun
+  return res;
+}
+
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+// Plus court chemin, en pénalisant les tronçons qui s'éloignent de l'arrivée
+function chemin(res, de, vers) {
+  const n = res.N.length, d = new Float64Array(n).fill(Infinity), prec = new Int32Array(n).fill(-1), vu = new Uint8Array(n);
+  d[de] = 0; const file = [[0, de]];
+  while (file.length) {
+    file.sort((a, b) => a[0] - b[0]);
+    const [du, u] = file.shift();
+    if (vu[u]) continue; vu[u] = 1; if (u === vers) break;
+    for (const v of res.adj[u]) {
+      let c = dist(res.N[u], res.N[v]);
+      if (dist(res.N[v], res.N[vers]) > dist(res.N[u], res.N[vers])) c *= 10;
+      if (du + c < d[v]) { d[v] = du + c; prec[v] = u; file.push([du + c, v]); }
+    }
+  }
+  const p = []; for (let c = vers; c !== -1; c = prec[c]) p.unshift(c);
+  return p[0] === de ? p : [de, vers];
+}
+
+const procheNoeud = (res, pt) => res.N.reduce((m, n, i) => (dist(n, pt) < dist(res.N[m], pt) ? i : m), 0);
+
+// Supprime les retours en arrière (on ne s'éloigne jamais du travail en chemin)
+function sansDetour(pts) {
+  const out = [pts[0]]; let best = dist(pts[0], { x: 0, y: 0 });
+  for (let i = 1; i < pts.length; i++) {
+    const d = dist(pts[i], { x: 0, y: 0 });
+    if (d <= best * 1.05 || i === pts.length - 1) { out.push(pts[i]); best = Math.min(best, d); }
+  }
+  if (dist(out[out.length - 1], { x: 0, y: 0 }) > 0.02) out.push({ x: 0, y: 0 });
+  return out;
+}
+
+function trajetReseau(res, home, mode) {
+  const depart = procheNoeud(res, home);
+  let noeuds;
+  if (mode === 'bus' || mode === 'train') { // marche jusqu'à la ligne la plus proche, puis ligne vers le centre
+    let best = null;
+    res.tc.forEach(l => l.forEach((nd, k) => { const dd = dist(res.N[depart], res.N[nd]); if (!best || dd < best.d) best = { d: dd, l, k }; }));
+    const centre = best.l.reduce((m, nd, k) => (dist(res.N[nd], { x: 0, y: 0 }) < dist(res.N[best.l[m]], { x: 0, y: 0 }) ? k : m), 0);
+    const ligne = best.k <= centre ? best.l.slice(best.k, centre + 1) : best.l.slice(centre, best.k + 1).reverse();
+    noeuds = [...chemin(res, depart, best.l[best.k]), ...ligne.slice(1)];
+  } else noeuds = chemin(res, depart, 0);
+  const pts = sansDetour([home, ...noeuds.map(i => res.N[i])]);
+  let longueur = 0; for (let i = 1; i < pts.length; i++) longueur += dist(pts[i - 1], pts[i]);
+  return { pts, longueur };
+}
+
+function surLeTrajet(t, k) { // position à la fraction k du trajet
+  let reste = k * t.longueur;
+  for (let i = 1; i < t.pts.length; i++) {
+    const seg = dist(t.pts[i - 1], t.pts[i]);
+    if (reste <= seg) { const f = seg ? reste / seg : 0; return { x: t.pts[i - 1].x + (t.pts[i].x - t.pts[i - 1].x) * f, y: t.pts[i - 1].y + (t.pts[i].y - t.pts[i - 1].y) * f }; }
+    reste -= seg;
+  }
+  return t.pts[t.pts.length - 1];
+}
+
 function rejouer() {
-  cancelAnimationFrame(rejeu);
-  const parts = calculer().parts.filter(p => p.transport !== 'remote');
-  const fils = $('#fils'); fils.innerHTML = '';
-  if (!parts.length) return;
+  if (rejeu) return arreterRejeu();
+  reseau ||= construireReseau();
   const minutes = p => { const [h, m] = (p.departureTime || '07:30').split(':').map(Number); return h * 60 + m; };
-  const debut = Math.min(...parts.map(minutes)) - 15, fin = Math.max(...parts.map(minutes)) + 15;
-  const DUREE = 20000, t0 = performance.now(), partis = new Set();
-  $('#replay-heure').hidden = false;
-  const pas = now => {
-    const k = Math.min(1, (now - t0) / DUREE), m = debut + (fin - debut) * k;
-    $('#replay-heure').textContent = `${String(Math.floor(m / 60)).padStart(2, '0')} h ${String(Math.floor(m % 60)).padStart(2, '0')}`;
-    parts.forEach(p => {
-      if (partis.has(p.id) || minutes(p) > m) return;
-      partis.add(p.id);
-      const { x, y } = position(p);
-      const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      Object.entries({ x1: x, y1: y, x2: C0, y2: C0, stroke: peloteDe(p.transport).hex }).forEach(([a, v]) => l.setAttribute(a, v));
-      l.classList.add('fil');
-      fils.appendChild(l);
-    });
-    if (k < 1) rejeu = requestAnimationFrame(pas);
+  const gens = calculer().parts.filter(p => p.transport !== 'remote' && p.t.distanceKm > 0).map(p => {
+    const { x, y } = position(p), home = { x: (x - C0) / R, y: (y - C0) / R };
+    const duree = p.t.distanceKm / (VITESSE_KMH[p.transport] || 40) * 60;
+    return { ...p, home, dep: minutes(p), duree, arr: minutes(p) + duree, couleur: peloteDe(p.transport).hex, trajet: trajetReseau(reseau, home, p.transport) };
+  });
+  if (!gens.length) return;
+  const debut = Math.min(...gens.map(g => g.dep)) - 5, fin = Math.max(...gens.map(g => g.arr)) + 3;
+  const DUREE_MS = 30000, t0 = performance.now();
+
+  // Toile posée exactement sur la carte
+  const svg = $('#carte'), zone = svg.parentElement;
+  const cv = document.createElement('canvas'); cv.id = 'toile'; zone.appendChild(cv);
+  const ctx = cv.getContext('2d');
+  const caler = () => {
+    const b = svg.getBoundingClientRect(), z = zone.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+    Object.assign(cv.style, { left: `${b.left - z.left}px`, top: `${b.top - z.top}px`, width: `${b.width}px`, height: `${b.height}px` });
+    cv.width = b.width * dpr; cv.height = b.height * dpr;
+    const k = Math.min(b.width, b.height) / 1000;
+    return { s: R * k * dpr, cx: (b.width / 2) * dpr, cy: (b.height / 2) * dpr, dpr };
   };
-  rejeu = requestAnimationFrame(pas);
+  let ech = caler();
+  const ecran = p => [ech.cx + p.x * ech.s, ech.cy + p.y * ech.s];
+  $('#btn-replay').textContent = 'Effacer les fils';
+  $('#replay-heure').hidden = false;
+
+  const dessiner = maintenant => {
+    const m = debut + (fin - debut) * Math.min(1, (maintenant - t0) / DUREE_MS);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    // Réseau (discret) et lignes de transport en commun
+    ctx.lineWidth = 1 * ech.dpr; ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    reseau.E.forEach(([a, b]) => { const [ax, ay] = ecran(reseau.N[a]), [bx, by] = ecran(reseau.N[b]); ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); });
+    ctx.setLineDash([6 * ech.dpr, 4 * ech.dpr]); ctx.strokeStyle = 'rgba(236,72,153,0.25)'; ctx.lineWidth = 2 * ech.dpr;
+    reseau.tc.forEach(l => { ctx.beginPath(); l.forEach((nd, i) => { const [x, y] = ecran(reseau.N[nd]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); });
+    ctx.setLineDash([]);
+    let route = 0, arrives = 0;
+    gens.forEach(g => {
+      if (m < g.dep) return;
+      const k = Math.min(1, (m - g.dep) / Math.max(g.duree, 0.5));
+      k < 1 ? route++ : arrives++;
+      // Fil déroulé jusqu'à la position actuelle
+      ctx.beginPath();
+      let reste = k * g.trajet.longueur, [x0, y0] = ecran(g.trajet.pts[0]); ctx.moveTo(x0, y0);
+      for (let i = 1; i < g.trajet.pts.length && reste > 0; i++) {
+        const seg = dist(g.trajet.pts[i - 1], g.trajet.pts[i]), pt = reste >= seg ? g.trajet.pts[i] : surLeTrajet(g.trajet, k);
+        const [x, y] = ecran(pt); ctx.lineTo(x, y); reste -= seg;
+      }
+      ctx.strokeStyle = g.couleur; ctx.lineWidth = 3 * ech.dpr; ctx.lineCap = ctx.lineJoin = 'round';
+      ctx.globalAlpha = k < 1 ? 0.9 : 0.55; ctx.shadowBlur = k < 1 ? 8 * ech.dpr : 0; ctx.shadowColor = g.couleur;
+      ctx.stroke(); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+      if (k < 1) { const [x, y] = ecran(surLeTrajet(g.trajet, k)); ctx.beginPath(); ctx.arc(x, y, 7 * ech.dpr, 0, 2 * Math.PI); ctx.fillStyle = g.couleur; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5 * ech.dpr; ctx.stroke(); }
+    });
+    $('#replay-heure').textContent = `${String(Math.floor(m / 60)).padStart(2, '0')} h ${String(Math.floor(m % 60)).padStart(2, '0')} · ${route} en route · ${arrives} arrivés`;
+    if (m < fin) rejeu = requestAnimationFrame(dessiner);
+    else { rejeu = 'fini'; bilanAxes(gens, ctx, ecran, ech); }
+  };
+  rejeu = requestAnimationFrame(dessiner);
+}
+
+// Fin du rejeu : voitures seules regroupées par axe d'arrivée = lignes de covoiturage possibles
+function bilanAxes(gens, ctx, ecran, ech) {
+  const parAxe = Array.from({ length: AXES }, () => 0);
+  gens.filter(g => ['car-thermal', 'car-electric'].includes(g.transport) && g.t.distanceKm >= CONFIG.DISTANCE_THRESHOLD_KM).forEach(g => {
+    const ang = (Math.atan2(g.home.x, -g.home.y) + 2 * Math.PI) % (2 * Math.PI);
+    parAxe[Math.round(ang / (2 * Math.PI / AXES)) % AXES]++;
+  });
+  ctx.font = `800 ${16 * ech.dpr}px 'Atkinson Hyperlegible Next', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  parAxe.forEach((n, a) => {
+    if (n < 3) return;
+    const ang = (2 * Math.PI / AXES) * a, [x, y] = ecran({ x: Math.sin(ang) * 0.82, y: -Math.cos(ang) * 0.82 });
+    const txt = `${n} voitures seules`, w = ctx.measureText(txt).width + 18 * ech.dpr;
+    ctx.fillStyle = 'rgba(14,12,34,.88)'; ctx.strokeStyle = '#F7931E'; ctx.lineWidth = 2 * ech.dpr;
+    ctx.beginPath(); ctx.roundRect(x - w / 2, y - 15 * ech.dpr, w, 30 * ech.dpr, 15 * ech.dpr); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#FFC27A'; ctx.fillText(txt, x, y);
+  });
+  const lignes = parAxe.filter(n => n >= 3).length;
+  $('#replay-heure').textContent = lignes
+    ? `${lignes} ligne${lignes > 1 ? 's' : ''} de covoiturage possible${lignes > 1 ? 's' : ''} : au moins 3 voitures seules sur le même axe`
+    : 'Arrivée de tout le monde. Repérez les axes où les fils de même couleur se superposent.';
+}
+
+function arreterRejeu() {
+  if (typeof rejeu === 'number') cancelAnimationFrame(rejeu);
+  rejeu = null;
+  $('#toile')?.remove();
+  $('#replay-heure').hidden = true;
+  $('#btn-replay').textContent = 'Rejouer la matinée';
 }
 
 // ===================== Démonstration (aucune donnée Firestore) =====================

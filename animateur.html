@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;800&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/animateur.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -31,7 +32,11 @@
 <main id="tableau" class="tableau" hidden>
   <header class="barre-haut">
     <img src="logo.webp" alt="GoDifferent" class="logo" width="480" height="165">
-    <div class="titre-atelier"><span id="code-atelier"></span><span class="direct"><i></i>en direct</span></div>
+    <button id="btn-inviter" class="inviter" title="Afficher le QR code d'invitation en grand">
+      <span id="mini-qr" class="mini-qr"></span>
+      <span><small>Rejoindre l'atelier</small><b id="code-atelier"></b></span>
+    </button>
+    <span class="direct"><i></i>en direct</span>
     <div class="actions">
       <span id="horloge" class="horloge"></span>
       <button id="btn-plein" class="btn-petit">Plein écran</button>
@@ -86,6 +91,18 @@
     </div>
   </section>
 </main>
+
+<!-- Invitation en grand, pour le début de séance -->
+<div id="invitation" class="invitation" hidden>
+  <div id="grand-qr" class="grand-qr"></div>
+  <div class="invitation-texte">
+    <p class="doux">Scannez avec l'appareil photo de votre téléphone</p>
+    <p>Code de l'atelier</p>
+    <p id="grand-code" class="grand-code"></p>
+    <p id="grand-url" class="doux"></p>
+    <button id="btn-fermer-invit" class="btn-petit">Fermer</button>
+  </div>
+</div>
 
 <script type="module" src="js/animateur.js"></script>
 </body>
