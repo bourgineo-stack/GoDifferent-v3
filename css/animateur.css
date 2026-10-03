@@ -115,3 +115,36 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; background:
 .grand-code { font-family: var(--titre); font-weight: 800; font-size: 3.2em; line-height: 1; background: linear-gradient(90deg, var(--vert), var(--bleu)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .centre-adresse { color: var(--doux); font-size: .8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .kpi-inscrits { cursor: pointer; }
+
+/* ----- Clôture ----- */
+.btn-cloture { background: linear-gradient(135deg, #FFB347, #F7931E 45%, #F2611D); color: #1A1030; border: 0; }
+.btn-danger { background: rgba(255, 122, 122, .15); border-color: rgba(255, 122, 122, .5); color: #FFB0B0; }
+.btn-petit:disabled { opacity: .4; cursor: not-allowed; }
+.cloture { position: fixed; inset: 0; z-index: 60; background: rgba(14, 12, 34, .85); display: grid; place-items: center; padding: 4vh 4vw; }
+.cloture-boite { background: #1C1940; border: 1px solid var(--trait); border-radius: 22px; padding: 1.6em; width: min(760px, 100%); display: grid; gap: 1em; }
+.cloture-boite h2 { font-family: var(--titre); font-size: 1.3em; }
+.etapes-cloture { list-style: none; display: grid; gap: .7em; counter-reset: e; }
+.etapes-cloture li { counter-increment: e; display: flex; align-items: center; gap: 1em; padding: .9em 1em; border-radius: 14px; background: var(--surface); border: 1px solid var(--trait); }
+.etapes-cloture li::before { content: counter(e); width: 2em; height: 2em; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 800; border: 2px solid var(--trait); }
+.etapes-cloture li.fait::before { content: '✓'; background: var(--vert); border-color: var(--vert); color: #0E0C22; }
+.etapes-cloture li div { flex: 1; display: grid; gap: .2em; }
+.etapes-cloture li span { font-size: .85em; }
+
+/* ----- Onglets et carte réelle ----- */
+.onglets { display: flex; gap: .3em; background: rgba(255, 255, 255, .05); border-radius: 12px; padding: .25em; }
+.onglet { font: inherit; font-weight: 700; color: var(--doux); background: none; border: 0; border-radius: 9px; padding: .35em .9em; cursor: pointer; }
+.onglet.actif { background: var(--surface); color: var(--texte); box-shadow: inset 0 0 0 1px var(--trait); }
+.zone-salle { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 0; }
+.carte-reelle { flex: 1; min-height: 60vh; border-radius: 16px; overflow: hidden; background: #0E0C22; }
+.carte-reelle .leaflet-tile-pane { filter: grayscale(1) invert(1) brightness(.85) contrast(.9) hue-rotate(200deg); } /* fond IGN assombri, aux couleurs du tableau */
+.carte-reelle .leaflet-control-attribution { background: rgba(14, 12, 34, .7); color: var(--doux); }
+.carte-reelle .leaflet-control-attribution a { color: var(--doux); }
+.etiquette-travail { background: #8E6FD8; color: #fff; border: 0; font-weight: 800; box-shadow: none; }
+.etiquette-travail::before { border-top-color: #8E6FD8; }
+.lignes-etat { margin-top: .6em; color: var(--doux); font-weight: 600; }
+
+/* ----- Démonstration commentée ----- */
+.recit { position: fixed; left: 50%; bottom: 1.4em; transform: translateX(-50%); z-index: 40; width: min(980px, 92vw); background: rgba(28, 25, 64, .96); border: 1px solid var(--trait); border-left: 6px solid var(--orange); border-radius: 18px; padding: 1em 1.3em; display: grid; grid-template-columns: 1fr auto; gap: .2em 1.2em; box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .8); }
+.recit-etape { font-family: var(--titre); font-weight: 600; color: #FFC27A; }
+.recit-texte { grid-column: 1; font-size: 1.05em; }
+.recit-actions { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: .6em; align-items: center; }

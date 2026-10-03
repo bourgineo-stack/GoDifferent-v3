@@ -39,6 +39,7 @@
     <span class="direct"><i></i>en direct</span>
     <div class="actions">
       <span id="horloge" class="horloge"></span>
+      <button id="btn-cloture" class="btn-petit btn-cloture">Clôturer l'atelier</button>
       <button id="btn-plein" class="btn-petit">Plein écran</button>
     </div>
   </header>
@@ -53,15 +54,25 @@
 
   <section class="panneau salle">
     <div class="panneau-tete">
-      <h2>La salle</h2>
+      <div class="onglets" role="tablist">
+        <button class="onglet actif" data-vue="salle" role="tab">La salle</button>
+        <button class="onglet" data-vue="reelle" role="tab">Carte réelle</button>
+      </div>
       <span id="centre" class="centre-adresse"></span>
-      <div class="actions">
+      <div class="actions vue-salle">
         <span id="replay-heure" class="replay-heure" hidden></span>
         <button id="btn-replay" class="btn-petit">Rejouer la matinée</button>
       </div>
+      <div class="actions vue-reelle" hidden>
+        <button id="btn-lignes" class="btn-petit">Tracer les lignes de covoiturage</button>
+      </div>
     </div>
-    <svg id="carte" viewBox="0 0 1000 1000" role="img" aria-label="Position des participants par rapport au lieu de travail"></svg>
-    <ul id="legende" class="legende"></ul>
+    <div class="zone-salle vue-salle">
+      <svg id="carte" viewBox="0 0 1000 1000" role="img" aria-label="Position des participants par rapport au lieu de travail"></svg>
+      <ul id="legende" class="legende"></ul>
+    </div>
+    <div id="carte-reelle" class="carte-reelle vue-reelle" hidden></div>
+    <p id="lignes-etat" class="lignes-etat vue-reelle" hidden>Chaque trait représente une route empruntée par au moins 3 conducteurs seuls ; plus il est épais, plus ils sont nombreux. Les premiers kilomètres de chaque trajet ne sont jamais affichés.</p>
   </section>
 
   <section class="panneau mission">
@@ -92,6 +103,32 @@
     </div>
   </section>
 </main>
+
+<!-- Démonstration commentée, pour présenter l'atelier à un client -->
+<div id="recit" class="recit" hidden>
+  <p id="recit-etape" class="recit-etape"></p>
+  <p id="recit-texte" class="recit-texte"></p>
+  <div class="recit-actions">
+    <button id="recit-cloture" class="btn-petit btn-cloture" hidden>Voir la clôture de l'atelier</button>
+    <button id="recit-fermer" class="btn-petit">Masquer</button>
+  </div>
+</div>
+
+<!-- Clôture : tout garder, puis tout effacer -->
+<div id="cloture" class="cloture" hidden>
+  <div class="cloture-boite">
+    <h2>Clôturer l'atelier</h2>
+    <p class="doux">Dans l'ordre : gardez tout, puis effacez les données personnelles de la base. Aucun fichier ne contient d'adresse ni de coordonnée.</p>
+    <ol class="etapes-cloture">
+      <li data-etape="archive"><div><b>Archive complète (Excel)</b><span class="doux">Profils, engagements, groupes, rencontres, binômes : votre trace de l'atelier.</span></div><button class="btn-petit" data-action="archive">Télécharger</button></li>
+      <li data-etape="pdme"><div><b>Dossier PDME (.json)</b><span class="doux">À importer en un clic dans le générateur de plan de mobilité.</span></div><button class="btn-petit" data-action="pdme">Télécharger</button></li>
+      <li data-etape="rapport"><div><b>Compte rendu pour l'entreprise (PDF)</b><span class="doux">Chiffres clés, diagnostic, engagements, parole des groupes.</span></div><button class="btn-petit" data-action="rapport">Télécharger</button></li>
+      <li data-etape="effacer"><div><b>Effacer les données de la base</b><span class="doux">Disponible une fois l'archive et le dossier PDME téléchargés. Définitif.</span></div><button class="btn-petit btn-danger" data-action="effacer" disabled>Effacer</button></li>
+    </ol>
+    <p id="cloture-etat" class="doux"></p>
+    <button id="btn-fermer-cloture" class="btn-petit">Fermer</button>
+  </div>
+</div>
 
 <!-- Invitation en grand, pour le début de séance -->
 <div id="invitation" class="invitation" hidden>

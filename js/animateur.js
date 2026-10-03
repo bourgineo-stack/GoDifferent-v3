@@ -7,6 +7,8 @@ import { GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/fir
 import { roadKm, bearing, trajetActuel } from './calc.js';
 import { ALTERNATIVES, FREINS, COUT_KM_VOITURE } from './constants.js';
 import { CONFIG } from './config.js';
+import { archiveExcel, dossierPdme, compteRendu, effacer } from './cloture.js';
+import { afficherCarte, calculerLignes, dessinerLignes, lignesCalculees, MIN_VOITURES } from './lignes.js';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -407,6 +409,12 @@ function arreterRejeu() {
 
 // ===================== Démonstration (aucune donnée Firestore) =====================
 function demo() {
+  etapeRecit(0);
+  setTimeout(() => etapeRecit(1), 4000);
+  setTimeout(() => etapeRecit(2), 22000);
+  setTimeout(() => etapeRecit(3), 28000);
+  setTimeout(() => { etapeRecit(4); vue('salle'); rejouer(); }, 50000);
+  setTimeout(async () => { etapeRecit(5); await vue('reelle'); await tracerLignes(); setTimeout(() => etapeRecit(6), 6000); }, 84000);
   S.code = 'DÉMONSTRATION';
   S.ws = { companyLat: 47.322, companyLon: 5.041, capacity: 80, expectedParticipants: 60, companyAddress: 'Dijon (démonstration)' };
   ouvrir();
@@ -423,7 +431,7 @@ function demo() {
     const m = Math.round(465 + 25 * gauss()), id = `u_demo${String(i).padStart(5, '0')}_x`;
     ids.push(id);
     const transport = tirerMode();
-    S.participants.set(id, { lat, lon, transport, nbTrajetsAR: 1, joursPresence: 5, departureTime: `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}` });
+    S.participants.set(id, { pseudo: `Demo${String(i).padStart(3, '0')}`, lat, lon, transport, nbTrajetsAR: 1, joursPresence: 5, departureTime: `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}` });
     i++; planifier();
   }, 250);
   // Rencontres
@@ -436,18 +444,109 @@ function demo() {
     }, 60);
   }, 4000);
   // Groupes puis engagements
-  setTimeout(() => { let k = 0; const gr = setInterval(() => { if (k++ >= 9) return clearInterval(gr); S.groups.set(`g${k}`, {}); planifier(); }, 600); }, 22000);
+  // Groupes de démonstration, avec des votes et des notes réalistes (pour le compte rendu)
+  const GROUPES_DEMO = [
+    { distance: 'eloigne', data: { theme1: { freins: [{ text: 'Réunions imprévues, horaires variables', votes: 5 }, { text: 'Si mon covoitureur est malade, quel plan B ?', votes: 3 }], valeurs: { 'Ponctualité': 4, 'Flexibilité': 3 }, engagements: [{ text: 'Rejoindre un groupe de messagerie covoiturage', count: 5 }] }, theme2: { freins: [{ text: 'Pas de borne au travail', votes: 4 }], valeurs: {}, engagements: [{ text: "Demander l'installation de bornes au travail", count: 4 }] } }, notes: "Créer un groupe de covoiturage par axe dès lundi ; demander 4 bornes sur le parking." },
+    { distance: 'proche', data: { theme1: { freins: [{ text: 'Pas de stationnement vélo sécurisé', votes: 6 }, { text: 'Météo (pluie, froid)', votes: 3 }], valeurs: {}, engagements: [{ text: 'Tester un trajet à deux cette semaine', count: 4 }] }, theme2: { freins: [{ text: 'Pas de ligne directe', votes: 4 }], valeurs: {}, engagements: [{ text: "Télécharger l'appli de transport cette semaine", count: 3 }] } }, notes: 'Un local vélo fermé et des casiers changeraient tout. Deux volontaires pour tester le tram.' },
+    { distance: 'eloigne', data: { theme1: { freins: [{ text: 'Point de rendez-vous à définir', votes: 4 }], valeurs: { 'Économies claires': 3 }, engagements: [{ text: 'Tester un trajet en covoiturage cette semaine', count: 3 }] }, theme2: { freins: [{ text: "Prix d'achat trop élevé", votes: 5 }], valeurs: {}, engagements: [{ text: 'Tester une électrique en autopartage ce mois-ci', count: 2 }] } }, notes: 'Aire de covoiturage de la sortie nord comme point de rendez-vous.' }
+  ];
+  setTimeout(() => { let k = 0; const gr = setInterval(() => {
+    if (k >= 9) return clearInterval(gr);
+    const g = GROUPES_DEMO[k % 3]; k++;
+    S.groups.set(`g${k}`, { ...g, data: JSON.stringify(g.data), memberIds: ids.slice(k * 5, k * 5 + 5).map(x => x.slice(0, 12)), scribeId12: ids[k * 5 + 5]?.slice(0, 12), scribePseudo: `Demo${String(k * 5 + 5).padStart(3, '0')}` });
+    planifier();
+  }, 600); }, 22000);
   setTimeout(() => {
     let k = 0;
     const alts = ['covoiturage', 'covoiturage', 'velo', 'tc', 'teletravail', 'electrique', 'aucun'];
     const fr = ['horaires', 'distance', 'infrastructure', 'famille', 'info'];
     const rep = setInterval(() => {
       if (k >= ids.length - 6) return clearInterval(rep);
-      const p = S.participants.get(ids[k++]), t = trajetActuel(p, work());
+      const id = ids[k++], p = S.participants.get(id), t = trajetActuel(p, work());
       const alt = alts[Math.floor(Math.random() * alts.length)];
       const part = alt === 'aucun' ? 0 : [0.2, 0.2, 0.4, 0.6][Math.floor(Math.random() * 4)];
-      S.responses.set(ids[k], { alternative_1: alt, frein_1: fr[Math.floor(Math.random() * fr.length)], gain_espere_kg: t.emissions * 0.5 * part });
+      S.responses.set(id, { participantId: id, engagement: part ? 'interesse' : 'pas_maintenant', alternative_1: alt, frein_1: fr[Math.floor(Math.random() * fr.length)], levier_1: ['covoit_interne', 'prime', 'infra', 'horaires_flex', 'formation'][Math.floor(Math.random() * 5)], gain_espere_kg: t.emissions * 0.5 * part });
       planifier();
     }, 350);
   }, 28000);
 }
+
+// ===================== Clôture de l'atelier =====================
+const faits = new Set();
+$('#btn-cloture').addEventListener('click', () => { $('#cloture').hidden = false; });
+$('#btn-fermer-cloture').addEventListener('click', () => { $('#cloture').hidden = true; });
+$('#cloture').addEventListener('click', async e => {
+  const b = e.target.closest('[data-action]');
+  if (!b) return;
+  const etat = $('#cloture-etat'), action = b.dataset.action;
+  b.disabled = true;
+  try {
+    if (action === 'archive') await archiveExcel(S);
+    if (action === 'pdme') dossierPdme(S);
+    if (action === 'rapport') await compteRendu(S);
+    if (action === 'effacer') {
+      if (S.code === 'DÉMONSTRATION') { etat.textContent = 'Démonstration : rien à effacer.'; return; }
+      if (!confirm(`Effacer définitivement toutes les données des participants de "${S.code}" ?\n\nL'atelier (code, adresse, étapes) est conservé.`)) { b.disabled = false; return; }
+      etat.textContent = 'Effacement en cours…';
+      const n = await effacer(S.code);
+      etat.textContent = `${n} documents effacés. Les données personnelles de l'atelier ne sont plus dans la base.`;
+    }
+    faits.add(action);
+    b.closest('li').classList.add('fait');
+    if (action !== 'effacer') b.disabled = false;
+    $('[data-action="effacer"]').disabled = !(faits.has('archive') && faits.has('pdme')) || faits.has('effacer');
+  } catch (err) {
+    console.error(err);
+    etat.textContent = `Erreur : ${err.message}`;
+    b.disabled = false;
+  }
+});
+
+// ===================== Carte réelle et lignes de covoiturage =====================
+function vue(nom) {
+  document.querySelectorAll('.onglet').forEach(o => o.classList.toggle('actif', o.dataset.vue === nom));
+  document.querySelectorAll('.vue-salle').forEach(el => { el.hidden = nom !== 'salle'; });
+  document.querySelectorAll('.vue-reelle').forEach(el => { el.hidden = nom !== 'reelle'; });
+  if (nom === 'reelle') {
+    if (rejeu) arreterRejeu();
+    return afficherCarte($('#carte-reelle'), work(), S.ws.companyAddress).then(() => {
+      const r = lignesCalculees(); if (r) dessinerLignes(r, work());
+    });
+  }
+}
+document.querySelectorAll('.onglet').forEach(o => o.addEventListener('click', () => vue(o.dataset.vue)));
+
+async function tracerLignes() {
+  const b = $('#btn-lignes'), etat = $('#lignes-etat');
+  const conducteurs = calculer().parts.filter(p => ['car-thermal', 'car-electric'].includes(p.transport)).map(p => ({ id: p.id, lat: p.lat, lon: p.lon }));
+  if (conducteurs.length < MIN_VOITURES) { etat.textContent = `Il faut au moins ${MIN_VOITURES} conducteurs seuls pour tracer des lignes.`; return; }
+  b.disabled = true;
+  try {
+    const r = await calculerLignes(conducteurs, work(), (f, t) => { b.textContent = `Itinéraires : ${f} sur ${t}`; });
+    dessinerLignes(r, work());
+    etat.textContent = r.troncons.length
+      ? `${nf(r.kmPartages)} km de routes empruntées par au moins ${MIN_VOITURES} conducteurs seuls, jusqu'à ${r.max} voitures sur le même tronçon. Autant de lignes de covoiturage à organiser.${r.echecs ? ` (${r.echecs} itinéraires non calculés)` : ''}`
+      : `Aucune route n'est empruntée par ${MIN_VOITURES} conducteurs seuls ou plus.`;
+  } catch (e) { etat.textContent = `Calcul impossible : ${e.message}`; }
+  b.disabled = false; b.textContent = 'Recalculer les lignes';
+}
+$('#btn-lignes').addEventListener('click', tracerLignes);
+
+// ===================== Démonstration commentée =====================
+const RECIT = [
+  ['Inscription', "Chaque salarié scanne le QR code de l'atelier et décrit son trajet. Il apparaît dans « la salle », placé selon la direction et la distance de son domicile."],
+  ['Rencontres', "Chacun scanne ses collègues et découvre la distance entre leurs domiciles. Quand deux voisins se trouvent, un mini-défi leur est proposé."],
+  ['Co-construction', "Par groupes de voisins, les salariés débattent des freins et des solutions. Le scribe anime sur son téléphone, le maître du temps tient le rythme."],
+  ['Engagements', "Chacun choisit une alternative et la part de ses trajets qu'il est prêt à changer. La mission de la séance se remplit en direct."],
+  ['La matinée rejouée', "Chaque fil part à l'heure de départ réelle de chacun. Là où les fils de même couleur se superposent naissent les lignes de covoiturage."],
+  ['Les vraies routes', "Sur la carte IGN : les routes empruntées chaque matin par au moins 3 conducteurs seuls. Ce sont les lignes de covoiturage à organiser."],
+  ['Clôture', "En fin de séance, l'animateur télécharge l'archive, le dossier du plan de mobilité et le compte rendu pour l'entreprise, puis efface les données personnelles."]
+];
+function etapeRecit(i) {
+  $('#recit').hidden = false;
+  $('#recit-etape').textContent = `Étape ${i + 1} sur ${RECIT.length} : ${RECIT[i][0]}`;
+  $('#recit-texte').textContent = RECIT[i][1];
+  $('#recit-cloture').hidden = i !== RECIT.length - 1;
+}
+$('#recit-fermer').addEventListener('click', () => { $('#recit').hidden = true; });
+$('#recit-cloture').addEventListener('click', () => { $('#cloture').hidden = false; });
