@@ -1,14 +1,14 @@
 // Tableau de bord animateur : à projeter pendant l'atelier.
 // Lecture seule. Écoute en temps réel des 4 sous-collections (une lecture par document au départ,
 // puis une par nouveauté) : de l'ordre de 2 000 à 3 000 lectures pour tout un atelier.
-import { db, auth } from './firebase.js';
+import { db, auth } from './firebase.js?v=6i';
 import { collection, doc, getDoc, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
 import { GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
-import { roadKm, bearing, trajetActuel } from './calc.js';
-import { ALTERNATIVES, FREINS, COUT_KM_VOITURE } from './constants.js';
-import { CONFIG } from './config.js';
-import { archiveExcel, dossierPdme, compteRendu, effacer } from './cloture.js';
-import { afficherCarte, calculerLignes, dessinerLignes, lignesCalculees, MIN_VOITURES } from './lignes.js';
+import { roadKm, bearing, trajetActuel } from './calc.js?v=6i';
+import { ALTERNATIVES, FREINS, COUT_KM_VOITURE } from './constants.js?v=6i';
+import { CONFIG } from './config.js?v=6i';
+import { archiveExcel, dossierPdme, compteRendu, effacer } from './cloture.js?v=6i';
+import { afficherCarte, calculerLignes, dessinerLignes, lignesCalculees, MIN_VOITURES } from './lignes.js?v=6i';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -511,7 +511,7 @@ function vue(nom) {
     if (rejeu) arreterRejeu();
     return afficherCarte($('#carte-reelle'), work(), S.ws.companyAddress).then(() => {
       const r = lignesCalculees(); if (r) dessinerLignes(r, work());
-    });
+    }).catch(e => { console.error(e); $('#lignes-etat').textContent = `La carte n'a pas pu se charger : ${e.message}`; });
   }
 }
 document.querySelectorAll('.onglet').forEach(o => o.addEventListener('click', () => vue(o.dataset.vue)));

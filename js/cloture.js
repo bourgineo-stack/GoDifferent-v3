@@ -1,13 +1,13 @@
 // Clôture de l'atelier, depuis le tableau de bord animateur :
 // 1. archive Excel complète (sans coordonnées), 2. dossier PDME pour le générateur,
 // 3. compte rendu PDF pour l'entreprise, 4. effacement des données dans Firestore.
-import { db } from './firebase.js';
+import { db } from './firebase.js?v=6i';
 import { collection, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
-import { roadKm, bearing, direction, trajetActuel } from './calc.js';
-import { MODES, ALTERNATIVES, FREINS, LEVIERS, ENGAGEMENTS, COUT_KM_VOITURE, SEMAINES_TRAVAILLEES } from './constants.js';
-import { THEMES } from './contenu.js';
-import { CONFIG } from './config.js';
-import { lignesCalculees, MIN_VOITURES } from './lignes.js';
+import { roadKm, bearing, direction, trajetActuel } from './calc.js?v=6i';
+import { MODES, ALTERNATIVES, FREINS, LEVIERS, ENGAGEMENTS, COUT_KM_VOITURE, SEMAINES_TRAVAILLEES } from './constants.js?v=6i';
+import { THEMES } from './contenu.js?v=6i';
+import { CONFIG } from './config.js?v=6i';
+import { lignesCalculees, MIN_VOITURES } from './lignes.js?v=6i';
 
 const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 const JSPDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
@@ -253,22 +253,28 @@ export async function compteRendu(S) {
   if (lg?.troncons.length) {
     titre('Les lignes de covoiturage, sur les vraies routes', [247, 147, 30]);
     texte(`${nb(lg.kmPartages)} km de routes sont empruntés chaque matin par au moins ${MIN_VOITURES} conducteurs seuls, jusqu'à ${lg.max} sur le même tronçon. Plus le trait est épais, plus ils sont nombreux.`);
-    const H = 95; place(H + 6);
-    const pts = lg.troncons.flatMap(t => [t.a, t.b]).concat([[S.ws.companyLat, S.ws.companyLon]]);
-    const la = pts.map(p => p[0]), lo = pts.map(p => p[1]);
-    const kx = Math.cos((Math.min(...la) + Math.max(...la)) / 2 * Math.PI / 180);
-    const larg = (Math.max(...lo) - Math.min(...lo)) * kx || 0.01, haut = (Math.max(...la) - Math.min(...la)) || 0.01;
-    const ech = Math.min((W - 10) / larg, (H - 10) / haut), ox = L + (W - larg * ech) / 2, oy = y + (H - haut * ech) / 2;
-    const xy = p => [ox + (p[1] - Math.min(...lo)) * kx * ech, oy + (Math.max(...la) - p[0]) * ech];
-    fill(C.fond); doc.roundedRect(L, y, W, H, 3, 3, 'F');
-    [...lg.troncons].sort((a, b) => a.n - b.n).forEach(t => {
-      const [x1, y1] = xy(t.a), [x2, y2] = xy(t.b);
-      doc.setDrawColor(247, Math.round(147 - 60 * (t.n - MIN_VOITURES) / Math.max(1, lg.max - MIN_VOITURES)), 30);
-      doc.setLineWidth(0.5 + (t.n - MIN_VOITURES) * 0.35); doc.setLineCap('round'); doc.line(x1, y1, x2, y2);
-    });
-    const [wx, wy] = xy([S.ws.companyLat, S.ws.companyLon]);
-    fill(C.violet); doc.circle(wx, wy, 2.2, 'F'); font(8, true); ink(C.violet); doc.text('Lieu de travail', wx + 3.5, wy + 1);
-    y += H + 4;
+    const H = 100; place(H + 6);
+    const img = await imageCarte(lg, { lat: S.ws.companyLat, lon: S.ws.companyLon }, W / H);
+    if (img) {
+      doc.addImage(img, 'JPEG', L, y, W, H);
+    } else { // fond de carte indisponible : schéma seul, comme avant
+      const pts = lg.troncons.flatMap(t => [t.a, t.b]).concat([[S.ws.companyLat, S.ws.companyLon]]);
+      const la = pts.map(p => p[0]), lo = pts.map(p => p[1]);
+      const kx = Math.cos((Math.min(...la) + Math.max(...la)) / 2 * Math.PI / 180);
+      const larg = (Math.max(...lo) - Math.min(...lo)) * kx || 0.01, haut = (Math.max(...la) - Math.min(...la)) || 0.01;
+      const ech = Math.min((W - 10) / larg, (H - 10) / haut), ox = L + (W - larg * ech) / 2, oy = y + (H - haut * ech) / 2;
+      const xy = p => [ox + (p[1] - Math.min(...lo)) * kx * ech, oy + (Math.max(...la) - p[0]) * ech];
+      fill(C.fond); doc.roundedRect(L, y, W, H, 3, 3, 'F');
+      [...lg.troncons].sort((a, b) => a.n - b.n).forEach(t => {
+        const [x1, y1] = xy(t.a), [x2, y2] = xy(t.b);
+        doc.setDrawColor(247, Math.round(147 - 60 * (t.n - MIN_VOITURES) / Math.max(1, lg.max - MIN_VOITURES)), 30);
+        doc.setLineWidth(0.5 + (t.n - MIN_VOITURES) * 0.35); doc.setLineCap('round'); doc.line(x1, y1, x2, y2);
+      });
+      const [wx, wy] = xy([S.ws.companyLat, S.ws.companyLon]);
+      fill(C.violet); doc.circle(wx, wy, 2.2, 'F'); font(8, true); ink(C.violet); doc.text('Lieu de travail', wx + 3.5, wy + 1);
+    }
+    font(7); ink(C.doux); doc.text('Fond de carte : © IGN, Plan IGN', L + W, y + H + 3, { align: 'right' });
+    y += H + 7;
   }
 
   titre('Méthode et confidentialité', C.doux);
@@ -290,4 +296,74 @@ export async function effacer(code) {
     total += snap.size;
   }
   return total;
+}
+
+// ===================== Carte des lignes pour le PDF (fond Plan IGN + tracés) =====================
+// Les tuiles IGN sont assemblées dans un canevas, puis les lignes sont dessinées par-dessus.
+// Renvoie une image JPEG, ou null si le fond de carte n'a pas pu être chargé.
+const TUILE = (z, x, y) => `https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX=${z}&TILEROW=${y}&TILECOL=${x}`;
+
+async function imageCarte(lg, work, ratio) {
+  try {
+    const LARG = 1800, HAUT = Math.round(LARG / ratio), MARGE = 0.12;
+    const pts = lg.troncons.flatMap(t => [t.a, t.b]).concat([[work.lat, work.lon]]);
+    // Projection Web Mercator, en pixels du monde au niveau de zoom z
+    const px = (lat, lon, z) => {
+      const n = 256 * 2 ** z, s = Math.sin(lat * Math.PI / 180);
+      return [(lon + 180) / 360 * n, (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * n];
+    };
+    let z = 14;
+    for (; z > 6; z--) {
+      const xy = pts.map(p => px(p[0], p[1], z));
+      const w = Math.max(...xy.map(p => p[0])) - Math.min(...xy.map(p => p[0]));
+      const h = Math.max(...xy.map(p => p[1])) - Math.min(...xy.map(p => p[1]));
+      if (w <= LARG * (1 - 2 * MARGE) && h <= HAUT * (1 - 2 * MARGE)) break;
+    }
+    const xy = pts.map(p => px(p[0], p[1], z));
+    const cx = (Math.max(...xy.map(p => p[0])) + Math.min(...xy.map(p => p[0]))) / 2;
+    const cy = (Math.max(...xy.map(p => p[1])) + Math.min(...xy.map(p => p[1]))) / 2;
+    const x0 = cx - LARG / 2, y0 = cy - HAUT / 2;
+
+    const cv = Object.assign(document.createElement('canvas'), { width: LARG, height: HAUT });
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#f2f1f6'; ctx.fillRect(0, 0, LARG, HAUT);
+    const charge = (u) => new Promise((ok, ko) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => ok(im); im.onerror = ko; im.src = u; });
+    const taches = [];
+    for (let tx = Math.floor(x0 / 256); tx <= Math.floor((x0 + LARG) / 256); tx++) {
+      for (let ty = Math.floor(y0 / 256); ty <= Math.floor((y0 + HAUT) / 256); ty++) {
+        taches.push(charge(TUILE(z, tx, ty)).then(im => ({ im, tx, ty })));
+      }
+    }
+    const tuiles = (await Promise.allSettled(taches)).filter(r => r.status === 'fulfilled').map(r => r.value);
+    if (!tuiles.length) return null;
+    ctx.filter = 'grayscale(0.7) brightness(1.06)'; // fond discret, pour que les lignes ressortent
+    tuiles.forEach(({ im, tx, ty }) => ctx.drawImage(im, tx * 256 - x0, ty * 256 - y0));
+    ctx.filter = 'none';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)'; ctx.fillRect(0, 0, LARG, HAUT);
+
+    // Lignes : halo puis trait, de l'orange (3 voitures) au rouge (tronçon le plus chargé)
+    const ech = LARG / 900;
+    const point = (lat, lon) => { const [x, y] = px(lat, lon, z); return [x - x0, y - y0]; };
+    const teinte = n => { const k = lg.max > MIN_VOITURES ? (n - MIN_VOITURES) / (lg.max - MIN_VOITURES) : 1; return `rgb(${Math.round(247 - 27 * k)},${Math.round(147 - 110 * k)},${Math.round(30 + 10 * k)})`; };
+    ctx.lineCap = 'round';
+    [...lg.troncons].sort((a, b) => a.n - b.n).forEach(t => {
+      const [x1, y1] = point(...t.a), [x2, y2] = point(...t.b), w = (2.5 + (t.n - MIN_VOITURES) * 1.6) * ech;
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = w + 3 * ech;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.strokeStyle = teinte(t.n); ctx.lineWidth = w;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    });
+    // Lieu de travail
+    const [wx, wy] = point(work.lat, work.lon);
+    ctx.fillStyle = '#6B4BB0'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 4 * ech;
+    ctx.beginPath(); ctx.arc(wx, wy, 10 * ech, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+    ctx.font = `700 ${16 * ech}px Helvetica, Arial, sans-serif`;
+    const lib = 'Lieu de travail', lw = ctx.measureText(lib).width;
+    ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fillRect(wx + 14 * ech, wy - 12 * ech, lw + 12 * ech, 24 * ech);
+    ctx.fillStyle = '#6B4BB0'; ctx.fillText(lib, wx + 20 * ech, wy + 6 * ech);
+    return cv.toDataURL('image/jpeg', 0.85); // échoue si les tuiles n'autorisent pas la réutilisation : on renvoie alors null
+  } catch (e) {
+    console.warn('Fond de carte indisponible pour le PDF', e);
+    return null;
+  }
 }

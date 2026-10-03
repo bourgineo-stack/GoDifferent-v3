@@ -1,12 +1,12 @@
 // Étape 1 : accueil (code + RGPD), profil, écran "prêt".
-import { store } from '../store.js';
-import { show, onEnter, goToStep } from '../router.js';
-import { fetchWorkshop, saveParticipant } from '../db.js';
-import { geocode, isConfident } from '../geocode.js';
-import { round3 } from '../calc.js';
-import { $, esc, toast, busy } from '../ui.js';
-import { PSEUDO_WORDS, MODES } from '../constants.js';
-import { CONFIG } from '../config.js';
+import { store } from '../store.js?v=6i';
+import { show, onEnter, goToStep } from '../router.js?v=6i';
+import { fetchWorkshop, saveParticipant } from '../db.js?v=6i';
+import { geocode, isConfident } from '../geocode.js?v=6i';
+import { round3 } from '../calc.js?v=6i';
+import { $, esc, toast, busy } from '../ui.js?v=6i';
+import { PSEUDO_WORDS, MODES } from '../constants.js?v=6i';
+import { CONFIG } from '../config.js?v=6i';
 
 // Bouton d'envoi, y compris quand le formulaire est relancé par le code (requestSubmit)
 const submitBtn = e => e.submitter || e.target.querySelector('[type=submit]');

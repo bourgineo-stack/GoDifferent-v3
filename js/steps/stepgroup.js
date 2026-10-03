@@ -1,15 +1,15 @@
 // Co-construction en groupe.
 // Le scribe tient le déroulé sur son téléphone et l'enregistre à chaque changement de phase.
 // Le maître du temps et les membres suivent en direct (écoute du document du groupe).
-import { store } from '../store.js';
-import { show, onEnter } from '../router.js';
-import { saveGroup, watchMyGroup } from '../db.js';
-import { startScan, stopScan, setScanInfo, cameraError } from '../scanner.js';
-import { myPayload, renderQR, parsePayload } from '../qr.js';
-import { roadKm } from '../calc.js';
-import { $, esc, toast, busy, ecranAllume } from '../ui.js';
-import { CONFIG } from '../config.js';
-import { THEMES, PHASES, CONTENU, CONSIGNES_SCRIBE, RESSOURCES_COMMUNES } from '../contenu.js';
+import { store } from '../store.js?v=6i';
+import { show, onEnter } from '../router.js?v=6i';
+import { saveGroup, watchMyGroup } from '../db.js?v=6i';
+import { startScan, stopScan, setScanInfo, cameraError } from '../scanner.js?v=6i';
+import { myPayload, renderQR, parsePayload } from '../qr.js?v=6i';
+import { roadKm } from '../calc.js?v=6i';
+import { $, esc, toast, busy, ecranAllume } from '../ui.js?v=6i';
+import { CONFIG } from '../config.js?v=6i';
+import { THEMES, PHASES, CONTENU, CONSIGNES_SCRIBE, RESSOURCES_COMMUNES } from '../contenu.js?v=6i';
 
 const THEME_SEC = CONFIG.THEME_DURATION_SECONDS;
 const id12 = () => store.get().profile.id.slice(0, 12);

@@ -1,14 +1,14 @@
 // Point d'entrée.
-import { store } from './store.js';
-import { show, next, prev } from './router.js';
-import { fetchWorkshop } from './db.js';
-import * as step1 from './steps/step1.js';
-import * as step2 from './steps/step2.js';
-import * as step3 from './steps/step3.js';
-import * as step4 from './steps/step4.js';
-import * as step5 from './steps/step5.js';
-import * as stepgroup from './steps/stepgroup.js';
-import * as step6 from './steps/step6.js';
+import { store } from './store.js?v=6i';
+import { show, next, prev } from './router.js?v=6i';
+import { fetchWorkshop } from './db.js?v=6i';
+import * as step1 from './steps/step1.js?v=6i';
+import * as step2 from './steps/step2.js?v=6i';
+import * as step3 from './steps/step3.js?v=6i';
+import * as step4 from './steps/step4.js?v=6i';
+import * as step5 from './steps/step5.js?v=6i';
+import * as stepgroup from './steps/stepgroup.js?v=6i';
+import * as step6 from './steps/step6.js?v=6i';
 
 step1.init();
 step2.init();

@@ -1,12 +1,12 @@
 // Étape 4 : carte humaine. Chacun se place dans la salle comme sur une carte, le travail au centre.
 // Aucune lecture ni écriture Firestore : tout est calculé sur le téléphone.
-import { store } from '../store.js';
-import { onEnter } from '../router.js';
-import { startScan, cameraError } from '../scanner.js';
-import { myPayload, renderQR } from '../qr.js';
-import { roadKm, fmtKm, bearing, direction, vers } from '../calc.js';
-import { $, esc, toast } from '../ui.js';
-import { CONFIG } from '../config.js';
+import { store } from '../store.js?v=6i';
+import { onEnter } from '../router.js?v=6i';
+import { startScan, cameraError } from '../scanner.js?v=6i';
+import { myPayload, renderQR } from '../qr.js?v=6i';
+import { roadKm, fmtKm, bearing, direction, vers } from '../calc.js?v=6i';
+import { $, esc, toast } from '../ui.js?v=6i';
+import { CONFIG } from '../config.js?v=6i';
 
 export function init() {
   onEnter('step4', enter);

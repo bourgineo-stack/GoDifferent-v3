@@ -1,5 +1,5 @@
 // Calculs purs (aucun accès à l'écran ni à la base).
-import { DISTANCE_CORRECTION_FACTOR, VEHICULES, FACTEURS, SEMAINES_TRAVAILLEES, COUT_KM_VOITURE } from './constants.js';
+import { DISTANCE_CORRECTION_FACTOR, VEHICULES, FACTEURS, SEMAINES_TRAVAILLEES, COUT_KM_VOITURE } from './constants.js?v=6i';
 
 export const round3 = x => Math.round(x * 1000) / 1000; // ~100 m : suffisant, et moins intrusif
 

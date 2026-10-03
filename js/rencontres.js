@@ -1,11 +1,11 @@
 // Carnet de rencontres partagé par les étapes 2 et 3.
 // Quand A scanne B, B reçoit A automatiquement (écoute Firestore en temps réel),
 // et les deux voient le MÊME mini-défi.
-import { store } from './store.js';
-import { saveScans, saveRencontre, watchReciprocal } from './db.js';
-import { roadKm } from './calc.js';
-import { DEFIS } from './constants.js';
-import { CONFIG } from './config.js';
+import { store } from './store.js?v=6i';
+import { saveScans, saveRencontre, watchReciprocal } from './db.js?v=6i';
+import { roadKm } from './calc.js?v=6i';
+import { DEFIS } from './constants.js?v=6i';
+import { CONFIG } from './config.js?v=6i';
 
 let unsub = null;
 

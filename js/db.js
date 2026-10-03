@@ -1,5 +1,5 @@
 // SEUL fichier qui parle à Firestore. Le schéma des données est entièrement ici.
-import { db, ensureAuth } from './firebase.js';
+import { db, ensureAuth } from './firebase.js?v=6i';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));

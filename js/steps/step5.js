@@ -1,9 +1,9 @@
 // Étape 5 : pelotes de laine. Chacun déroule son trajet, du domicile vers le centre.
-import { store } from '../store.js';
-import { onEnter } from '../router.js';
-import { roadKm, fmtKm } from '../calc.js';
-import { $, esc } from '../ui.js';
-import { CONFIG } from '../config.js';
+import { store } from '../store.js?v=6i';
+import { onEnter } from '../router.js?v=6i';
+import { roadKm, fmtKm } from '../calc.js?v=6i';
+import { $, esc } from '../ui.js?v=6i';
+import { CONFIG } from '../config.js?v=6i';
 
 export function init() {
   onEnter('step5', enter);

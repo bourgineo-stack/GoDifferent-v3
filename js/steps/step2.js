@@ -1,12 +1,12 @@
 // Étape 2 : Rencontres. On scanne ses collègues pour découvrir la distance entre domiciles.
-import { store } from '../store.js';
-import { onEnter, next } from '../router.js';
-import { startScan, setScanInfo, cameraError } from '../scanner.js';
-import { myPayload, renderQR, parsePayload } from '../qr.js';
-import { addContact, isNear, pairDefi, flushScans } from '../rencontres.js';
-import { fmtKm } from '../calc.js';
-import { $, esc, toast, busy } from '../ui.js';
-import { CONFIG } from '../config.js';
+import { store } from '../store.js?v=6i';
+import { onEnter, next } from '../router.js?v=6i';
+import { startScan, setScanInfo, cameraError } from '../scanner.js?v=6i';
+import { myPayload, renderQR, parsePayload } from '../qr.js?v=6i';
+import { addContact, isNear, pairDefi, flushScans } from '../rencontres.js?v=6i';
+import { fmtKm } from '../calc.js?v=6i';
+import { $, esc, toast, busy } from '../ui.js?v=6i';
+import { CONFIG } from '../config.js?v=6i';
 
 export function init() {
   onEnter('step2', enter);

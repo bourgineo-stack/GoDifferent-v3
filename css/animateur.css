@@ -131,9 +131,11 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; background:
 .etapes-cloture li span { font-size: .85em; }
 
 /* ----- Onglets et carte réelle ----- */
-.onglets { display: flex; gap: .3em; background: rgba(255, 255, 255, .05); border-radius: 12px; padding: .25em; }
-.onglet { font: inherit; font-weight: 700; color: var(--doux); background: none; border: 0; border-radius: 9px; padding: .35em .9em; cursor: pointer; }
-.onglet.actif { background: var(--surface); color: var(--texte); box-shadow: inset 0 0 0 1px var(--trait); }
+.onglets { display: inline-flex; gap: .25em; padding: .3em; border-radius: 999px; background: rgba(255, 255, 255, .05); border: 1px solid var(--trait); }
+.onglet { font: inherit; font-family: var(--titre); font-weight: 600; font-size: .9em; letter-spacing: .01em; color: var(--doux); background: transparent; border: 0; border-radius: 999px; padding: .45em 1.1em; cursor: pointer; transition: color .2s, background .2s, box-shadow .2s; white-space: nowrap; }
+.onglet:hover { color: var(--texte); }
+.onglet.actif { color: #fff; background: linear-gradient(135deg, var(--bleu), var(--violet)); box-shadow: 0 6px 18px -8px rgba(43, 168, 224, .7); }
+.onglet:focus-visible { outline: 2px solid var(--bleu); outline-offset: 2px; }
 .zone-salle { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 0; }
 .carte-reelle { flex: 1; min-height: 60vh; border-radius: 16px; overflow: hidden; background: #0E0C22; }
 .carte-reelle .leaflet-tile-pane { filter: grayscale(1) invert(1) brightness(.85) contrast(.9) hue-rotate(200deg); } /* fond IGN assombri, aux couleurs du tableau */
@@ -148,3 +150,5 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; background:
 .recit-etape { font-family: var(--titre); font-weight: 600; color: #FFC27A; }
 .recit-texte { grid-column: 1; font-size: 1.05em; }
 .recit-actions { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: .6em; align-items: center; }
+.panneau-tete .btn-petit { white-space: nowrap; }
+.carte-reelle { position: relative; z-index: 0; isolation: isolate; } /* la carte ne passe plus au-dessus des fenêtres */

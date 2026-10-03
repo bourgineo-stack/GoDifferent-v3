@@ -1,6 +1,6 @@
 // Navigation entre écrans. Chaque écran est une <section data-screen="..." data-step="...">.
-import { store } from './store.js';
-import { $ } from './ui.js';
+import { store } from './store.js?v=6i';
+import { $ } from './ui.js?v=6i';
 
 const ORDER = ['step1', 'step2', 'step3', 'step4', 'step5', 'stepgroup', 'step6'];
 

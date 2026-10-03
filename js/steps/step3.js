@@ -1,12 +1,12 @@
 // Étape 3 : retrouver dans la salle 3 de ses 5 voisins géographiques.
-import { store } from '../store.js';
-import { onEnter, show } from '../router.js';
-import { fetchReciprocal, saveRetrouvaille, watchRetrouvailles } from '../db.js';
-import { startScan, setScanInfo, cameraError } from '../scanner.js';
-import { myPayload, renderQR, parsePayload } from '../qr.js';
-import { roadKm, fmtKm } from '../calc.js';
-import { addContact } from '../rencontres.js';
-import { $, esc, toast, busy } from '../ui.js';
+import { store } from '../store.js?v=6i';
+import { onEnter, show } from '../router.js?v=6i';
+import { fetchReciprocal, saveRetrouvaille, watchRetrouvailles } from '../db.js?v=6i';
+import { startScan, setScanInfo, cameraError } from '../scanner.js?v=6i';
+import { myPayload, renderQR, parsePayload } from '../qr.js?v=6i';
+import { roadKm, fmtKm } from '../calc.js?v=6i';
+import { addContact } from '../rencontres.js?v=6i';
+import { $, esc, toast, busy } from '../ui.js?v=6i';
 
 const NB_CIBLES = 5, NB_ESSAIS = 5;
 

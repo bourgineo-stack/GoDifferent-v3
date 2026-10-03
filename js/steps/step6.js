@@ -1,11 +1,11 @@
 // Étape 6 : engagements individuels, puis bilan (écran + PDF).
-import { store } from '../store.js';
-import { show, onEnter } from '../router.js';
-import { saveResponse } from '../db.js';
-import { trajetActuel, gainAlternative, partTrajets, fmtKm, facteurKm } from '../calc.js';
-import { $, esc, toast, busy } from '../ui.js';
-import { ALTERNATIVES, FREINS, LEVIERS, ENGAGEMENTS, MODES, SEMAINES_TRAVAILLEES, COUT_KM_VOITURE } from '../constants.js';
-import { telechargerBilan } from '../pdf.js';
+import { store } from '../store.js?v=6i';
+import { show, onEnter } from '../router.js?v=6i';
+import { saveResponse } from '../db.js?v=6i';
+import { trajetActuel, gainAlternative, partTrajets, fmtKm, facteurKm } from '../calc.js?v=6i';
+import { $, esc, toast, busy } from '../ui.js?v=6i';
+import { ALTERNATIVES, FREINS, LEVIERS, ENGAGEMENTS, MODES, SEMAINES_TRAVAILLEES, COUT_KM_VOITURE } from '../constants.js?v=6i';
+import { telechargerBilan } from '../pdf.js?v=6i';
 
 // Fréquences en jours par semaine (converties en part des trajets selon les jours de présence)
 const FREQ_MIN = [[0, 'Aucun engagement'], [1 / 44, 'Un essai unique'], [1 / 13, 'Une fois par trimestre'], [0.23, 'Une fois par mois'],

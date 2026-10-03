@@ -1,9 +1,9 @@
 // Bilan PDF personnel. Construit uniquement à partir des données enregistrées (pas de l'écran),
 // donc identique même après un rechargement de la page.
-import { ALTERNATIVES, FREINS, LEVIERS, ENGAGEMENTS, MODES, SEMAINES_TRAVAILLEES, COUT_KM_VOITURE } from './constants.js';
-import { THEMES, PHASES } from './contenu.js';
-import { facteurKm } from './calc.js';
-import { CONFIG } from './config.js';
+import { ALTERNATIVES, FREINS, LEVIERS, ENGAGEMENTS, MODES, SEMAINES_TRAVAILLEES, COUT_KM_VOITURE } from './constants.js?v=6i';
+import { THEMES, PHASES } from './contenu.js?v=6i';
+import { facteurKm } from './calc.js?v=6i';
+import { CONFIG } from './config.js?v=6i';
 
 const JSPDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
 
